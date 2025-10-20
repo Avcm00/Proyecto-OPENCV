@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -39,12 +39,14 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
 ]
 
 THIRD_PARTY_APPS = [
     'rest_framework',
     'corsheaders',
     'django_extensions',
+
 ]
 
 LOCAL_APPS = [
@@ -53,6 +55,7 @@ LOCAL_APPS = [
     'apps.recomendations',
     'apps.reports',
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -70,6 +73,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # ✅ aquí sí va el middleware
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'Proyecto_OPENCV.urls'
@@ -77,7 +82,7 @@ ROOT_URLCONF = 'Proyecto_OPENCV.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

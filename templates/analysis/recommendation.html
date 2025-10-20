@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    
+    <!-- Header con Botón Atrás -->
+    <div class="mb-12 flex items-center">
+      <a href="{% url 'analysis' %}" class="text-4xl text-gray-900 hover:text-gray-700 mr-6">
+        <i class="bx bx-left-arrow-alt"></i>
+      </a>
+      <h1 class="text-4xl font-bold text-gray-900">RECOMENDACIONES</h1>
+    </div>
+
+    <!-- Recomendaciones Principales -->
+    <div class="bg-white rounded-2xl border border-gray-300 p-8 mb-12 shadow-md">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Recomendación 1 -->
+        <div class="flex flex-col items-center text-center">
+          <div class="w-full h-40 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md">
+            <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=300&fit=crop" alt="Estilo 1" class="w-full h-full object-cover">
+          </div>
+          <div class="space-y-2">
+            <p class="text-sm font-bold text-gray-900">ESTILO 1</p>
+            <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+          </div>
+          <p class="text-xs text-gray-600 mt-4">DESCRIPCION</p>
+        </div>
+
+        <!-- Recomendación 2 -->
+        <div class="flex flex-col items-center text-center">
+          <div class="w-full h-40 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" alt="Estilo 2" class="w-full h-full object-cover">
+          </div>
+          <div class="space-y-2">
+            <p class="text-sm font-bold text-gray-900">ESTILO 2</p>
+            <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+          </div>
+          <p class="text-xs text-gray-600 mt-4">DESCRIPCION</p>
+        </div>
+
+        <!-- Recomendación 3 -->
+        <div class="flex flex-col items-center text-center">
+          <div class="w-full h-40 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop" alt="Estilo 3" class="w-full h-full object-cover">
+          </div>
+          <div class="space-y-2">
+            <p class="text-sm font-bold text-gray-900">ESTILO 3</p>
+            <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+          </div>
+          <p class="text-xs text-gray-600 mt-4">DESCRIPCION</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Otras Alternativas -->
+    <div class="bg-white rounded-2xl border border-gray-300 p-8 shadow-md">
+      <h2 class="text-2xl font-bold text-gray-900 mb-8">OTRAS ALTERNATIVAS</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Alternativa 1 -->
+        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <div class="h-48 bg-gray-300 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=300&fit=crop" alt="Alternativa 1" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="p-4">
+            <p class="text-sm font-bold text-gray-900">ESTILO 1</p>
+            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
+            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          </div>
+        </div>
+
+        <!-- Alternativa 2 -->
+        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <div class="h-48 bg-gray-300 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" alt="Alternativa 2" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="p-4">
+            <p class="text-sm font-bold text-gray-900">ESTILO 2</p>
+            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
+            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          </div>
+        </div>
+
+        <!-- Alternativa 3 -->
+        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <div class="h-48 bg-gray-300 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop" alt="Alternativa 3" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="p-4">
+            <p class="text-sm font-bold text-gray-900">ESTILO 3</p>
+            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
+            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del Análisis -->
+    <div class="mt-12 bg-blue-50 border border-blue-300 rounded-lg p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Información de tu Análisis</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <p class="text-gray-600 text-sm">Tipo de Rostro Detectado</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">{{ face_type|default:"Rostro Ovalado" }}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <p class="text-gray-600 text-sm">Precisión del Análisis</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">{{ precision|default:"92%" }}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <p class="text-gray-600 text-sm">Fecha del Análisis</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">{{ analysis_date|date:"d/m/Y"|default:"Hoy" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{% url 'analysis' %}" class="flex-1 sm:flex-none">
+        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition">
+          Realizar Nuevo Análisis
+        </button>
+      </a>
+      <a href="{% url 'home' %}" class="flex-1 sm:flex-none">
+        <button class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition">
+          Volver al Inicio
+        </button>
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

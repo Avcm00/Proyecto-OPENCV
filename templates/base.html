@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  </head>
+  <body class="flex flex-col min-h-screen bg-gray-50">
+    <!-- NAVBAR -->
+    <nav class="bg-yellow-400 shadow-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- Logo -->
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 border-2 border-black rounded-full flex items-center justify-center">
+              <i class="bx bx-cut text-black text-lg"></i>
+            </div>
+            <a href="#" class="text-black font-bold text-xl italic">Barber IA</a>
+          </div>
+
+          <!-- Menu Items -->
+          <div class="hidden md:flex space-x-8">
+            <a href="#" class="text-black font-semibold hover:text-gray-700 transition">Home</a>
+            <a href="#" class="text-black font-semibold hover:text-gray-700 transition">Análisis</a>
+            <a href="#" class="text-black font-semibold hover:text-gray-700 transition">Para Mujer</a>
+            <a href="#" class="text-black font-semibold hover:text-gray-700 transition">Para Hombre</a>
+            <a href="#" class="text-black font-semibold hover:text-gray-700 transition">Perfil</a>
+          </div>
+
+          <!-- Search and Close Session -->
+          <div class="flex items-center space-x-4">
+            <button class="text-black hover:text-gray-700">
+              <i class="bx bx-search text-2xl"></i>
+            </button>
+            <a href="#" class="text-black font-semibold hover:text-gray-700 transition hidden sm:block">
+              Iniciar Sesión
+            </a>
+            <!-- Mobile menu button -->
+            <button class="md:hidden text-black">
+              <i class="bx bx-menu text-2xl"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="">
+      <!-- Aquí va el contenido de tus páginas -->
+        {% block content %}
+        
+        {% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-700 text-gray-200 mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          <!-- Contact Section -->
+          <div>
+            <h3 class="text-white font-bold text-lg mb-6 italic">Contact</h3>
+            <div class="space-y-4">
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-globe text-xl"></i>
+                <a href="#" class="hover:text-yellow-400 transition">www.Barberia.com</a>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-phone text-xl"></i>
+                <a href="#" class="hover:text-yellow-400 transition">9999999999</a>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-envelope text-xl"></i>
+                <a href="#" class="hover:text-yellow-400 transition">Barberia@Email.Com</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logo Center -->
+          <div class="flex flex-col items-center justify-center">
+            <div class="w-12 h-12 border-2 border-gray-400 rounded-full flex items-center justify-center mb-4">
+              <i class="bx bx-cut text-gray-400 text-xl"></i>
+            </div>
+            <h2 class="text-white font-bold text-2xl italic mb-6">Barber IA</h2>
+            <div class="flex space-x-4">
+              <a href="#" class="hover:text-yellow-400 transition">
+                <i class="bx bxl-facebook text-xl"></i>
+              </a>
+              <a href="#" class="hover:text-yellow-400 transition">
+                <i class="bx bxl-twitter text-xl"></i>
+              </a>
+              <a href="#" class="hover:text-yellow-400 transition">
+                <i class="bx bxl-linkedin text-xl"></i>
+              </a>
+              <a href="#" class="hover:text-yellow-400 transition">
+                <i class="bx bxl-instagram text-xl"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Mails Section -->
+          <div>
+            <h3 class="text-white font-bold text-lg mb-6 italic">Mails</h3>
+            <div class="space-y-3">
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-envelope text-xl"></i>
+                <a href="mailto:ejemplo@unemi.edu.ec" class="hover:text-yellow-400 transition text-sm">
+                  ejemplo@unemi.edu.ec
+                </a>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-envelope text-xl"></i>
+                <a href="mailto:acaveron@unemi.edu.ec" class="hover:text-yellow-400 transition text-sm">
+                  acaveron@unemi.edu.ec
+                </a>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-envelope text-xl"></i>
+                <a href="mailto:achevian4@unemi.edu.ec" class="hover:text-yellow-400 transition text-sm">
+                  achevian4@unemi.edu.ec
+                </a>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i class="bx bx-envelope text-xl"></i>
+                <a href="mailto:aguevarin2@unemi.edu.ec" class="hover:text-yellow-400 transition text-sm">
+                  aguevarin2@unemi.edu.ec
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-600 mt-8 pt-8 text-center text-gray-400 text-sm">
+          <p>&copy; 2025 Barber IA. Todos los derechos reservados.</p>
+        </div>
+      </div>
+    </footer>
+
+  </body>
+</html>

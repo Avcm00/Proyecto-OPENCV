@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Historial de análisis y recomendaciones personalizadas</h1>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 text-center hover:shadow-lg transition">
+        <p class="text-gray-600 font-semibold mb-3">Análisis Totales</p>
+        <p class="text-3xl font-bold text-gray-900">{{ total_analysis|default:"12" }}</p>
+      </div>
+      
+      <div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 text-center hover:shadow-lg transition">
+        <p class="text-gray-600 font-semibold mb-3">Usuarios Registrados</p>
+        <p class="text-3xl font-bold text-gray-900">{{ total_users|default:"8" }}</p>
+      </div>
+      
+      <div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 text-center hover:shadow-lg transition">
+        <p class="text-gray-600 font-semibold mb-3">Precisión Promedio</p>
+        <p class="text-3xl font-bold text-yellow-500">{{ avg_precision|default:"93.4%" }}</p>
+      </div>
+      
+      <div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 text-center hover:shadow-lg transition">
+        <p class="text-gray-600 font-semibold mb-3">Análisis Hoy</p>
+        <p class="text-3xl font-bold text-gray-900">{{ analysis_today|default:"2" }}</p>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+      
+      <!-- Gráfico 1: Estadísticas de Tipos de Rostros -->
+      <div class="bg-white rounded-2xl p-8 shadow-md border border-gray-200 lg:col-span-1">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Estadísticas de tipos de rostros y cortes</h2>
+        <div class="relative h-80">
+          <canvas id="chartRostros"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 2: Cortes de Cabello Populares -->
+      <div class="bg-white rounded-2xl p-8 shadow-md border border-gray-200 lg:col-span-2">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Cortes de Cabello</h2>
+        <div class="relative h-80">
+          <canvas id="chartCortes"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Historial de Análisis -->
+    <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Historial de Análisis</h2>
+      
+      <!-- Filtros -->
+      <div class="flex flex-wrap gap-3 mb-6">
+        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold">
+          All
+        </button>
+        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold">
+          Projection
+        </button>
+        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold">
+          Comparable
+        </button>
+        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold">
+          Merger
+        </button>
+        <select class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold border border-gray-300">
+          <option>All industries</option>
+        </select>
+        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold">
+          Created
+        </button>
+        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold">
+          <i class="bx bx-search"></i>
+        </button>
+      </div>
+
+      <!-- Tabla -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-300">
+              <th class="text-left py-4 px-4 font-bold text-gray-900">Usuario</th>
+              <th class="text-left py-4 px-4 font-bold text-gray-900">Recomendación</th>
+              <th class="text-left py-4 px-4 font-bold text-gray-900">Tipo de Rostro</th>
+              <th class="text-left py-4 px-4 font-bold text-gray-900">Precisión</th>
+              <th class="text-left py-4 px-4 font-bold text-blue-600">Fecha</th>
+              <th class="text-left py-4 px-4 font-bold text-gray-900">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in analysis_history %}
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+              <td class="py-4 px-4 text-gray-700">{{ item.usuario }}</td>
+              <td class="py-4 px-4 text-gray-700">{{ item.recomendacion }}</td>
+              <td class="py-4 px-4 text-gray-700">{{ item.tipo_rostro }}</td>
+              <td class="py-4 px-4 text-gray-700">{{ item.precision }}</td>
+              <td class="py-4 px-4 text-blue-600">{{ item.fecha }}</td>
+              <td class="py-4 px-4">
+                <button class="text-red-600 hover:text-red-800 transition">
+                  <i class="bx bx-trash text-lg"></i>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="border-b border-gray-200">
+              <td colspan="6" class="py-8 px-4 text-center text-gray-500">No hay análisis registrados</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<script>
+  // Gráfico 1: Tipos de Rostros (Gráfico de Barras)
+  const ctx1 = document.getElementById('chartRostros').getContext('2d');
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: ['Ovalado', 'Cuadrado', 'Redondo', 'Rectangular', 'Diamante'],
+      datasets: [{
+        label: 'Cantidad',
+        data: [8, 5, 4, 3, 2],
+        backgroundColor: [
+          '#FBBF24',
+          '#D1D5DB',
+          '#D1D5DB',
+          '#D1D5DB',
+          '#D1D5DB'
+        ],
+        borderColor: '#999',
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          border: { display: false }
+        },
+        x: {
+          border: { display: false }
+        }
+      }
+    }
+  });
+
+  // Gráfico 2: Cortes de Cabello (Gráfico de Barras Horizontal con Degradado)
+  const ctx2 = document.getElementById('chartCortes').getContext('2d');
+  new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Fade', 'UnderCut', 'Pompadour', 'Crew Cut', 'Corte Moderno', 'Corte Lateral', 'Corte Desvanecido', 'Corte Texturizado'],
+      datasets: [{
+        label: 'Popularidad',
+        data: [12, 10, 9, 8, 7, 6, 4, 3],
+        backgroundColor: [
+          '#FBBF24',
+          '#FCD34D',
+          '#FCE181',
+          '#FDEFB1',
+          '#D1D5DB',
+          '#D1D5DB',
+          '#D1D5DB',
+          '#D1D5DB'
+        ],
+        borderColor: '#999',
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          border: { display: false }
+        },
+        y: {
+          border: { display: false }
+        }
+      }
+    }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<!-- Hero Section -->
+<div class="relative w-full h-96 md:h-[500px] bg-black overflow-hidden mb-0">
+  <img src="{% static 'img/hair.png' %}" alt="Women Styles" class="w-full h-full object-cover opacity-30">
+  
+  <div class="absolute inset-0 flex flex-col justify-between items-center p-8 md:p-16">
+    <div class="text-center">
+      <h1 class="text-1xl md:text-8xl font-bold text-white mt-24">SUPERIOR CUTS</h1>
+    </div>
+    
+    <div class="w-full flex items-end justify-between">
+      <div class="flex gap-6 text-white text-sm font-semibold">
+        <a href="#" class="hover:text-yellow-400 transition">FACEBOOK</a>
+        <a href="#" class="hover:text-yellow-400 transition">INSTAGRAM</a>
+        <a href="#" class="hover:text-yellow-400 transition">TWITTER</a>
+      </div>
+      <div class="text-white text-3xl">
+        <i class="bx bx-right-arrow-alt"></i>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Barra azul inferior -->
+  <div class="absolute bottom-0 left-0 right-0 h-2 bg-blue-600"></div>
+</div>
+
+<!-- Styles Section -->
+<div class="bg-white py-16 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-4xl font-bold text-center text-gray-900 mb-16">STYLES</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <!-- Estilo 1 -->
+      <div class="relative overflow-hidden rounded-lg group cursor-pointer">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=400&fit=crop" alt="Long Waves" class="w-full h-64 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-end p-4">
+          <div class="text-white">
+            <p class="font-bold text-lg">LONG WAVES</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo 2 -->
+      <div class="relative overflow-hidden rounded-lg group cursor-pointer">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt="Short Pixie" class="w-full h-64 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-end p-4">
+          <div class="text-white">
+            <p class="font-bold text-lg">SHORT PIXIE</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo 3 -->
+      <div class="relative overflow-hidden rounded-lg group cursor-pointer">
+        <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=400&fit=crop" alt="Bob Cut" class="w-full h-64 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-end p-4">
+          <div class="text-white">
+            <p class="font-bold text-lg">BOB CUT</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo 4 -->
+      <div class="relative overflow-hidden rounded-lg group cursor-pointer">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt="Curly Locks" class="w-full h-64 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-end p-4">
+          <div class="text-white">
+            <p class="font-bold text-lg">CURLY LOCKS</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hair Cuts Section with Tabs -->
+<div class="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">HAIR CUTS</h2>
+    
+    <!-- Tabs -->
+    <div class="flex justify-center gap-8 mb-12 border-b border-gray-300 pb-6 flex-wrap">
+      <button class="text-gray-700 font-semibold hover:text-gray-900 transition border-b-2 border-yellow-400 pb-2">All</button>
+      <button class="text-gray-500 font-semibold hover:text-gray-700 transition">Layers</button>
+      <button class="text-gray-500 font-semibold hover:text-gray-700 transition">Waves</button>
+      <button class="text-gray-500 font-semibold hover:text-gray-700 transition">Hair Styling</button>
+      <button class="text-gray-500 font-semibold hover:text-gray-700 transition">Treatments</button>
+    </div>
+
+    <!-- Grid de Cortes -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- Corte 1 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&h=300&fit=crop" alt="Long Layers" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Long Layers</p>
+          <p class="text-sm text-gray-600">Volume & Movement</p>
+        </div>
+      </div>
+
+      <!-- Corte 2 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop" alt="Short Pixie" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Short Pixie</p>
+          <p class="text-sm text-gray-600">Chic & Modern</p>
+        </div>
+      </div>
+
+      <!-- Corte 3 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=300&h=300&fit=crop" alt="Classic Bob" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Classic Bob</p>
+          <p class="text-sm text-gray-600">Timeless Elegance</p>
+        </div>
+      </div>
+
+      <!-- Corte 4 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop" alt="Blunt Cut" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Blunt Cut</p>
+          <p class="text-sm text-gray-600">Bold & Defined</p>
+        </div>
+      </div>
+
+      <!-- Corte 5 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&h=300&fit=crop" alt="Wavy Long" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Wavy Long</p>
+          <p class="text-sm text-gray-600">Soft & Romantic</p>
+        </div>
+      </div>
+
+      <!-- Corte 6 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=300&h=300&fit=crop" alt="Side Bangs" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Side Bangs</p>
+          <p class="text-sm text-gray-600">Flattering Frame</p>
+        </div>
+      </div>
+
+      <!-- Corte 7 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop" alt="Curly Waves" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Curly Waves</p>
+          <p class="text-sm text-gray-600">Natural Texture</p>
+        </div>
+      </div>
+
+      <!-- Corte 8 -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&h=300&fit=crop" alt="Asymmetrical" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <p class="font-bold text-gray-900">Asymmetrical</p>
+          <p class="text-sm text-gray-600">Edgy & Contemporary</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

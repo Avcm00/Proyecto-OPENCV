@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    
+    <!-- Header con Información del Análisis -->
+    <div class="mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">RESULTADO DE ANÁLISIS</h1>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
+          <p class="text-gray-600 text-sm font-semibold mb-2">Tipo de Rostro</p>
+          <p class="text-2xl font-bold text-gray-900">{{ face_type|default:"Rostro Ovalado" }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
+          <p class="text-gray-600 text-sm font-semibold mb-2">Precisión</p>
+          <p class="text-2xl font-bold text-gray-900">{{ precision|default:"92%" }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
+          <p class="text-gray-600 text-sm font-semibold mb-2">Fecha</p>
+          <p class="text-2xl font-bold text-gray-900">{{ analysis_date|date:"d/m/Y"|default:"Hoy" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recomendaciones Principales -->
+    <div class="bg-white rounded-2xl border-2 border-gray-300 p-12 mb-12 shadow-lg">
+      <h2 class="text-2xl font-bold text-gray-900 mb-12">RECOMENDACIONES</h2>
+      
+      <div class="relative mb-8">
+        <p class="text-gray-400 text-lg font-semibold absolute -top-8 left-1/2 transform -translate-x-1/2">Frame 60</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Recomendación 1 -->
+        <div class="flex flex-col items-center">
+          <div class="w-full h-56 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md border border-gray-200">
+            <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=350&fit=crop" alt="Estilo 1" class="w-full h-full object-cover">
+          </div>
+          <div class="text-center space-y-2 w-full">
+            <div class="border-b border-gray-300 pb-3">
+              <p class="text-sm font-bold text-gray-900">ESTILO 1</p>
+              <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+            </div>
+            <p class="text-xs text-gray-600 pt-2">DESCRIPCION</p>
+          </div>
+        </div>
+
+        <!-- Recomendación 2 -->
+        <div class="flex flex-col items-center">
+          <div class="w-full h-56 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md border border-gray-200">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=350&fit=crop" alt="Estilo 2" class="w-full h-full object-cover">
+          </div>
+          <div class="text-center space-y-2 w-full">
+            <div class="border-b border-gray-300 pb-3">
+              <p class="text-sm font-bold text-gray-900">ESTILO 2</p>
+              <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+            </div>
+            <p class="text-xs text-gray-600 pt-2">DESCRIPCION</p>
+          </div>
+        </div>
+
+        <!-- Recomendación 3 -->
+        <div class="flex flex-col items-center">
+          <div class="w-full h-56 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md border border-gray-200">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=350&fit=crop" alt="Estilo 3" class="w-full h-full object-cover">
+          </div>
+          <div class="text-center space-y-2 w-full">
+            <div class="border-b border-gray-300 pb-3">
+              <p class="text-sm font-bold text-gray-900">ESTILO 3</p>
+              <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+            </div>
+            <p class="text-xs text-gray-600 pt-2">DESCRIPCION</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Otras Alternativas -->
+    <div class="bg-white rounded-2xl border-2 border-gray-300 p-12 shadow-lg">
+      <h2 class="text-2xl font-bold text-gray-900 mb-12">OTRAS ALTERNATIVAS</h2>
+
+      <div class="relative mb-12">
+        <p class="text-gray-400 text-lg font-semibold absolute -top-10 left-1/2 transform -translate-x-1/2">Frame 39</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        
+        <!-- Alternativa 1 -->
+        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <div class="h-56 bg-gray-300 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=350&fit=crop" alt="Alternativa 1" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="p-5 border-t border-gray-300">
+            <p class="text-sm font-bold text-gray-900">ESTILO 1</p>
+            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
+            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          </div>
+        </div>
+
+        <!-- Alternativa 2 -->
+        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <div class="h-56 bg-gray-300 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=350&fit=crop" alt="Alternativa 2" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="p-5 border-t border-gray-300">
+            <p class="text-sm font-bold text-gray-900">ESTILO 2</p>
+            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
+            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          </div>
+        </div>
+
+        <!-- Alternativa 3 -->
+        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <div class="h-56 bg-gray-300 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=350&fit=crop" alt="Alternativa 3" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="p-5 border-t border-gray-300">
+            <p class="text-sm font-bold text-gray-900">ESTILO 3</p>
+            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
+            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <p class="text-gray-400 text-lg font-semibold absolute -top-6 left-1/2 transform -translate-x-1/2">Frame 43</p>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{% url 'analysis' %}" class="flex-1 sm:flex-none">
+        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition">
+          Realizar Nuevo Análisis
+        </button>
+      </a>
+      <a href="{% url 'home' %}" class="flex-1 sm:flex-none">
+        <button class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition">
+          Volver al Inicio
+        </button>
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

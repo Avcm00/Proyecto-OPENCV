@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <!-- HERO SECTION -->
+  <section class="relative w-full h-96 md:h-[500px] rounded-lg overflow-hidden mb-16">
+    <div class="absolute inset-0 bg-black">
+      <img src="{% static 'img/hero.png' %}" alt="Hombre barbudo" class="w-full h-full object-cover ">
+    </div>
+    <div class="absolute inset-0 flex items-center justify-start pl-8 md:pl-16">
+      <div class="max-w-lg">
+        <h1 class="text-4xl md:text-5xl font-bold italic text-white mb-4 leading-tight">
+          Personaliza tu estilo con inteligencia.
+        </h1>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESCUBRE TU TIPO DE ROSTRO -->
+  <section class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 mb-20">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-bold mb-6">
+          Descubre<br><span class="italic">Tu Tipo De Rostro</span>
+        </h2>
+        <p class="text-gray-600 text-lg mb-8 leading-relaxed">
+          Conoce la forma de tu cara y encuentra el estilo que mejor refleja tu personalidad.
+        </p>
+        <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded transition duration-300">
+          Realizar Análisis
+        </button>
+      </div>
+      <div class="flex justify-center">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop" alt="Análisis de rostro" class="rounded-lg shadow-lg w-full max-w-sm">
+      </div>
+    </div>
+  </section>
+
+  <!-- TIPOS DE ROSTRO MAS COMUNES -->
+  <section class="bg-gray-900 text-gray-100 py-16 px-8 rounded-lg mb-20">
+    <h2 class="text-3xl md:text-4xl font-bold mb-12 italic">Tipos de Rostro mas comunes</h2>
+    
+    <div class="space-y-12">
+      <!-- Rostro Redondo -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        <div class="flex justify-center">
+          <img src="{% static 'img/rostro_redondo.png' %}" alt="Rostro Redondo" class="">
+        </div>
+        <div class="md:col-span-2">
+          <h3 class="text-2xl font-bold italic mb-3">rostro redondo</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Son los rostros que son más largos que ancho, es decir, con la frente y la barbilla generalmente estrechas. Para equilibrar estas proporciones, lo ideal es optar por cortes que aporten volumen y reduzcan visualmente la longitud del rostro. Los estilos con flequillo, como el corte texturizado o el crop, son perfectos.
+          </p>
+        </div>
+      </div>
+
+      <!-- Rostro Cuadrado -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        <div class="flex justify-center">
+          <img src="{% static 'img/rostro_cuadrado.png' %}" alt="Rostro Cuadrado" class="">
+        </div>
+        <div class="md:col-span-2">
+          <h3 class="text-2xl font-bold italic mb-3">rostro cuadrado</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Se caracteriza por tener la mandíbula marcada y el frente amplia, lo que transmite fuerza y carácter. Para suavizar estos ángulos y equilibrar el conjunto, se recomiendan cortes que aporten algo de volumen en la parte superior.
+          </p>
+        </div>
+      </div>
+
+      <!-- Rostro Ovalado -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        <div class="flex justify-center">
+          <img src="{% static 'img/rostro_ovalado.png' %}" alt="Rostro Ovalado" class="">
+        </div>
+        <div class="md:col-span-2">
+          <h3 class="text-2xl font-bold italic mb-3">rostro ovalado</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Casi todos los estilos le sientan bien ya que es considerado el más versátil y equilibrado, ya que sus proporciones armoniosas permiten adaptarse a casi cualquier tipo de corte. Puedes experimentar con cortes fade, undercut o con volumen en la parte superior.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ESTILOS DE CABELLO POPULARES -->
+  <section class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 mb-20">
+    <div class="flex justify-between items-center mb-12">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-bold">
+          Estilos De <span class="italic">Cabello</span><br><span class="italic">Populares</span>
+        </h2>
+      </div>
+      <button class="border-2 border-black rounded-full p-3 hover:bg-black hover:text-white transition">
+        <i class="bx bx-right-arrow-alt text-2xl"></i>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Estilo 1 -->
+      <div class="relative group overflow-hidden rounded-lg shadow-lg cursor-pointer">
+        <img src="{% static 'img/tousled.png' %}" alt="Tousled Hair" class="w-full h-96 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 flex items-end p-6">
+          <div class="flex items-center text-white">
+            <span class="text-xl font-semibold italic">Tousled Hair</span>
+            <i class="bx bx-right-arrow-alt ml-3"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo 2 -->
+      <div class="relative group overflow-hidden rounded-lg shadow-lg cursor-pointer">
+        <img src="{% static 'img/Fade.png' %}" alt="Fade Undercut" class="w-full h-96 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 flex items-end p-6">
+          <div class="flex items-center text-white">
+            <span class="text-xl font-semibold italic">Fade Undercut</span>
+            <i class="bx bx-right-arrow-alt ml-3"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo 3 -->
+      <div class="relative group overflow-hidden rounded-lg shadow-lg cursor-pointer">
+        <img src="{% static 'img/Long.png' %}" alt="Long Waves" class="w-full h-96 object-cover group-hover:scale-110 transition duration-300">
+        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 flex items-end p-6">
+          <div class="flex items-center text-white">
+            <span class="text-xl font-semibold italic">Long Waves</span>
+            <i class="bx bx-right-arrow-alt ml-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALL TO ACTION -->
+  <section class="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg p-12 md:p-20 text-center mb-20">
+    <h2 class="text-3xl md:text-4xl font-bold text-black mb-6 italic">
+      ¿Listo para transformar tu estilo?
+    </h2>
+    <p class="text-black text-lg mb-8 max-w-2xl mx-auto">
+      Descubre el corte perfecto para ti con nuestro análisis personalizado de tipo de rostro.
+    </p>
+    <button class="bg-black hover:bg-gray-800 text-yellow-400 font-bold py-3 px-10 rounded-lg transition duration-300 text-lg">
+      Comenzar Análisis Gratuito
+    </button>
+  </section>
+
+{% endblock %}
