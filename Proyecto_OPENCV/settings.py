@@ -46,6 +46,8 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'corsheaders',
     'django_extensions',
+    'crispy_forms',
+    'crispy_tailwind',
 
 ]
 
@@ -96,6 +98,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Proyecto_OPENCV.wsgi.application'
 
+AUTH_USER_MODEL = 'auth_app.UserModel'
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/auth/profile/'
+LOGOUT_REDIRECT_URL = '/auth/login/'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -142,7 +149,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

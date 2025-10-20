@@ -21,4 +21,5 @@ from apps.facial_analysis.adapters.web import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('facial_analysis/', include('apps.facial_analysis.adapters.web.urls')),
+    path('auth/', include('apps.auth_app.adapters.web.urls')),
 ]
