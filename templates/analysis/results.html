@@ -1,146 +1,271 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
   <div class="max-w-6xl mx-auto">
     
-    <!-- Header con Información del Análisis -->
-    <div class="mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">RESULTADO DE ANÁLISIS</h1>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
-          <p class="text-gray-600 text-sm font-semibold mb-2">Tipo de Rostro</p>
-          <p class="text-2xl font-bold text-gray-900">{{ face_type|default:"Rostro Ovalado" }}</p>
-        </div>
+    <!-- Header Animado -->
+    <div class="mb-12 text-center animate-fadeIn">
+      <div class="inline-block bg-white rounded-full px-6 py-2 shadow-lg mb-4">
+        <span class="text-green-600 font-bold text-sm">✓ ANÁLISIS COMPLETADO</span>
+      </div>
+      <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+        Resultado de Análisis
+      </h1>
+      <p class="text-gray-600 text-lg">Basado en análisis en tiempo real con Machine Learning</p>
+    </div>
+
+   <!-- Reemplazar la sección de Estadísticas Principales con: -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+
+        <!-- En la sección de Distribución de Formas -->
+        <div class="bg-white rounded-2xl p-8 shadow-xl border-2 border-blue-200">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Distribución de Formas</h3>
         
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
-          <p class="text-gray-600 text-sm font-semibold mb-2">Precisión</p>
-          <p class="text-2xl font-bold text-gray-900">{{ precision|default:"92%" }}</p>
+            {% if error_message %}
+                <div class="text-center p-4">
+                    <div class="text-red-500 mb-2">
+                        <i class="bx bx-error-circle text-3xl"></i>
+                    </div>
+                    <p class="text-gray-600">{{ error_message }}</p>
+                </div>
+            {% else %}
+                {% if analysis.face_shape_results %}
+                    {% for shape, percentage in analysis.face_shape_results %}
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">
+                                {{ shape }}
+                            </span>
+                            <span class="text-sm font-medium text-gray-700">
+                                {{ percentage|floatformat:1 }}%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" 
+                                 style="width: {{ percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
         </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
-          <p class="text-gray-600 text-sm font-semibold mb-2">Fecha</p>
-          <p class="text-2xl font-bold text-gray-900">{{ analysis_date|date:"d/m/Y"|default:"Hoy" }}</p>
+
+          <!-- Forma Principal Detectada -->
+          <div class="bg-white rounded-2xl p-8 shadow-xl border-2 border-green-200">
+              <div class="text-center">
+                  <div class="text-5xl mb-4">
+                      {% if analysis.primary_shape == 'Corazón' %}
+                      {% elif analysis.primary_shape == 'Diamante' %}
+                      {% elif analysis.primary_shape == 'Ovalado' %}
+                      {% elif analysis.primary_shape == 'Redondo' %}
+                      {% elif analysis.primary_shape == 'Triangular' %}
+                      {% endif %}
+                  </div>
+                  <p class="text-gray-600 text-sm font-semibold mb-2">Forma Principal</p>
+                  <p class="text-3xl font-bold text-gray-900">{{ analysis.primary_shape }}</p>
+                  <p class="text-lg text-gray-600 mt-2">
+                      {{ analysis.primary_confidence|floatformat:1 }}% de coincidencia
+                  </p>
+              </div>
+          </div>
+      </div>
+
+      <!-- Agregar después del div de forma principal -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <!-- Métricas Faciales -->
+          <div class="bg-white rounded-2xl p-8 shadow-xl border-2 border-blue-200">
+              <h3 class="text-xl font-bold text-gray-900 mb-6">Métricas Faciales</h3>
+              
+              {% if analysis.measurements %}
+              <div class="space-y-4">
+                  <!-- Proporciones Verticales -->
+                  <div class="border-b pb-4">
+                      <h4 class="font-semibold text-gray-700 mb-3">Proporciones Verticales</h4>
+                      <div class="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                              <p class="text-gray-600">Largo Total</p>
+                              <p class="font-medium">{{ analysis.measurements.face_height|floatformat:1 }} cm</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Tercio Superior</p>
+                              <p class="font-medium">{{ analysis.measurements.upper_third|floatformat:1 }} cm</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Tercio Medio</p>
+                              <p class="font-medium">{{ analysis.measurements.middle_third|floatformat:1 }} cm</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Tercio Inferior</p>
+                              <p class="font-medium">{{ analysis.measurements.lower_third|floatformat:1 }} cm</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Proporciones Horizontales -->
+                  <div class="border-b pb-4">
+                      <h4 class="font-semibold text-gray-700 mb-3">Proporciones Horizontales</h4>
+                      <div class="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                              <p class="text-gray-600">Ancho Facial</p>
+                              <p class="font-medium">{{ analysis.measurements.face_width|floatformat:1 }} px</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Distancia entre Ojos</p>
+                              <p class="font-medium">{{ analysis.measurements.eye_distance|floatformat:1 }} cm</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Ancho de Frente</p>
+                              <p class="font-medium">{{ analysis.measurements.forehead_width|floatformat:1 }} cm</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Ancho de Mandíbula</p>
+                              <p class="font-medium">{{ analysis.measurements.jaw_width|floatformat:1 }} cm</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Índices y Ratios -->
+                  <div>
+                      <h4 class="font-semibold text-gray-700 mb-3">Índices y Ratios</h4>
+                      <div class="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                              <p class="text-gray-600">Ratio Altura/Ancho</p>
+                              <p class="font-medium">{{ analysis.measurements.ratio|floatformat:2 }}</p>
+                          </div>
+                          <div>
+                              <p class="text-gray-600">Simetría</p>
+                              <p class="font-medium">{{ analysis.measurements.symmetry|floatformat:1 }}%</p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              {% else %}
+              <p class="text-center text-gray-500">No se pudieron obtener mediciones</p>
+              {% endif %}
+          </div>
+      </div>
+
+<!-- ...rest of the template... -->
+
+    <!-- Consejos Personalizados -->
+    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 mb-12 shadow-2xl text-white">
+      <div class="flex items-start">
+        <div class="text-4xl mr-4"></div>
+        <div>
+          <h3 class="text-2xl font-bold mb-3">Consejo Personalizado</h3>
+          <p class="text-lg opacity-95">{{ tips }}</p>
         </div>
       </div>
     </div>
 
     <!-- Recomendaciones Principales -->
-    <div class="bg-white rounded-2xl border-2 border-gray-300 p-12 mb-12 shadow-lg">
-      <h2 class="text-2xl font-bold text-gray-900 mb-12">RECOMENDACIONES</h2>
-      
-      <div class="relative mb-8">
-        <p class="text-gray-400 text-lg font-semibold absolute -top-8 left-1/2 transform -translate-x-1/2">Frame 60</p>
+    <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold text-gray-900">✂️ Recomendaciones de Cortes</h2>
+        <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
+          Top 3 para ti
+        </span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        <!-- Recomendación 1 -->
-        <div class="flex flex-col items-center">
-          <div class="w-full h-56 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md border border-gray-200">
-            <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=350&fit=crop" alt="Estilo 1" class="w-full h-full object-cover">
-          </div>
-          <div class="text-center space-y-2 w-full">
-            <div class="border-b border-gray-300 pb-3">
-              <p class="text-sm font-bold text-gray-900">ESTILO 1</p>
-              <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
+        {% for corte in recommendations.cortes|slice:":3" %}
+        <div class="group">
+          <div class="relative w-full h-64 bg-gray-300 rounded-xl overflow-hidden mb-4 shadow-lg">
+            <img src="{{ corte.imagen }}" 
+                 alt="{{ corte.nombre }}" 
+                 class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+            <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow">
+              <span class="text-xs font-bold text-gray-900">#{{ forloop.counter }}</span>
             </div>
-            <p class="text-xs text-gray-600 pt-2">DESCRIPCION</p>
+          </div>
+          
+          <div class="text-center space-y-3">
+            <div class="border-b-2 border-gray-200 pb-3">
+              <h3 class="text-lg font-bold text-gray-900">{{ corte.nombre }}</h3>
+              <p class="text-sm text-gray-600 mt-1">{{ corte.descripcion }}</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 justify-center pt-2">
+              {% for beneficio in corte.beneficios %}
+              <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                {{ beneficio }}
+              </span>
+              {% endfor %}
+            </div>
           </div>
         </div>
-
-        <!-- Recomendación 2 -->
-        <div class="flex flex-col items-center">
-          <div class="w-full h-56 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md border border-gray-200">
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=350&fit=crop" alt="Estilo 2" class="w-full h-full object-cover">
-          </div>
-          <div class="text-center space-y-2 w-full">
-            <div class="border-b border-gray-300 pb-3">
-              <p class="text-sm font-bold text-gray-900">ESTILO 2</p>
-              <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
-            </div>
-            <p class="text-xs text-gray-600 pt-2">DESCRIPCION</p>
-          </div>
-        </div>
-
-        <!-- Recomendación 3 -->
-        <div class="flex flex-col items-center">
-          <div class="w-full h-56 bg-gray-300 rounded-lg overflow-hidden mb-4 shadow-md border border-gray-200">
-            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=350&fit=crop" alt="Estilo 3" class="w-full h-full object-cover">
-          </div>
-          <div class="text-center space-y-2 w-full">
-            <div class="border-b border-gray-300 pb-3">
-              <p class="text-sm font-bold text-gray-900">ESTILO 3</p>
-              <p class="text-xs font-bold text-gray-700">ESTILO BARBA</p>
-            </div>
-            <p class="text-xs text-gray-600 pt-2">DESCRIPCION</p>
-          </div>
-        </div>
+        {% endfor %}
       </div>
     </div>
 
+    <!-- Recomendaciones de Barba (si es hombre) -->
+    {% if analysis.gender == 'hombre' and recommendations.barba %}
+    <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
+      <h2 class="text-3xl font-bold text-gray-900 mb-8"> Estilos de Barba</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {% for barba in recommendations.barba %}
+        <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-3">{{ barba.nombre }}</h3>
+          <p class="text-gray-700 mb-4">{{ barba.descripcion }}</p>
+          
+          <div class="flex flex-wrap gap-2">
+            {% for beneficio in barba.beneficios %}
+            <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+              {{ beneficio }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Otras Alternativas -->
-    <div class="bg-white rounded-2xl border-2 border-gray-300 p-12 shadow-lg">
-      <h2 class="text-2xl font-bold text-gray-900 mb-12">OTRAS ALTERNATIVAS</h2>
+    <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 shadow-2xl">
+      <h2 class="text-3xl font-bold text-gray-900 mb-8">Otras Alternativas</h2>
 
-      <div class="relative mb-12">
-        <p class="text-gray-400 text-lg font-semibold absolute -top-10 left-1/2 transform -translate-x-1/2">Frame 39</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        
-        <!-- Alternativa 1 -->
-        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
-          <div class="h-56 bg-gray-300 overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1599351751059-79cec7e67340?w=400&h=350&fit=crop" alt="Alternativa 1" class="w-full h-full object-cover hover:scale-105 transition">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for corte in recommendations.cortes|slice:"3:" %}
+        <div class="border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-blue-300 transition">
+          <div class="h-48 bg-gray-300 overflow-hidden">
+            <img src="{{ corte.imagen }}" 
+                 alt="{{ corte.nombre }}" 
+                 class="w-full h-full object-cover hover:scale-105 transition">
           </div>
-          <div class="p-5 border-t border-gray-300">
-            <p class="text-sm font-bold text-gray-900">ESTILO 1</p>
-            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
-            <p class="text-xs text-gray-600">DESCRIPCION</p>
+          <div class="p-5">
+            <h4 class="text-md font-bold text-gray-900 mb-2">{{ corte.nombre }}</h4>
+            <p class="text-xs text-gray-600 mb-3">{{ corte.descripcion }}</p>
+            <div class="flex flex-wrap gap-1">
+              {% for beneficio in corte.beneficios %}
+              <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                {{ beneficio }}
+              </span>
+              {% endfor %}
+            </div>
           </div>
         </div>
-
-        <!-- Alternativa 2 -->
-        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
-          <div class="h-56 bg-gray-300 overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=350&fit=crop" alt="Alternativa 2" class="w-full h-full object-cover hover:scale-105 transition">
-          </div>
-          <div class="p-5 border-t border-gray-300">
-            <p class="text-sm font-bold text-gray-900">ESTILO 2</p>
-            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
-            <p class="text-xs text-gray-600">DESCRIPCION</p>
-          </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-8 text-gray-500">
+          <p>Todas las recomendaciones principales ya se mostraron arriba</p>
         </div>
-
-        <!-- Alternativa 3 -->
-        <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
-          <div class="h-56 bg-gray-300 overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=350&fit=crop" alt="Alternativa 3" class="w-full h-full object-cover hover:scale-105 transition">
-          </div>
-          <div class="p-5 border-t border-gray-300">
-            <p class="text-sm font-bold text-gray-900">ESTILO 3</p>
-            <p class="text-xs font-bold text-gray-700 mb-3">ESTILO BARBA</p>
-            <p class="text-xs text-gray-600">DESCRIPCION</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="relative">
-        <p class="text-gray-400 text-lg font-semibold absolute -top-6 left-1/2 transform -translate-x-1/2">Frame 43</p>
+        {% endfor %}
       </div>
     </div>
 
     <!-- Botones de Acción -->
     <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="{% url 'analysis' %}" class="flex-1 sm:flex-none">
-        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition">
+      <a href="{% url 'analysis:main'%}" class="flex-1 sm:flex-none">
+        <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-xl transition shadow-lg transform hover:scale-105">
+          <i class="bx bx-refresh mr-2"></i>
           Realizar Nuevo Análisis
         </button>
       </a>
       <a href="{% url 'home' %}" class="flex-1 sm:flex-none">
-        <button class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition">
+        <button class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-xl transition shadow-lg transform hover:scale-105">
+          <i class="bx bx-home mr-2"></i>
           Volver al Inicio
         </button>
       </a>
@@ -148,4 +273,21 @@
 
   </div>
 </div>
+
+<style>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+</style>
 {% endblock %}

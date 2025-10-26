@@ -46,6 +46,9 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'corsheaders',
     'django_extensions',
+    'crispy_forms',
+    'crispy_tailwind',
+
 
 ]
 
@@ -96,7 +99,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Proyecto_OPENCV.wsgi.application'
 
-
+AUTH_USER_MODEL = 'auth_app.UserModel'
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/auth/profile/'
+LOGOUT_REDIRECT_URL = '/auth/login/'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

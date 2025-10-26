@@ -21,19 +21,23 @@
           
           <!-- Área de Foto -->
           <div id="cameraContainer" class="bg-white rounded-2xl aspect-square flex flex-col items-center justify-center relative overflow-hidden mb-4">
-            <input type="file" id="fotInput" name="foto" accept="image/*" class="hidden" onchange="previewImage(event)">
-            
             <!-- Estado inicial -->
-            <div id="initialState" class="flex flex-col items-center justify-center w-full h-full">
-              <i class="bx bx-camera text-gray-400 text-6xl mb-4"></i>
-              <label for="fotInput" class="cursor-pointer text-center">
-                <p class="text-gray-600 font-semibold">para esta función deber permitir el uso de la cámara</p>
-              </label>
+            <div id="initialState" class="text-center p-8">
+                <i class='bx bx-camera text-6xl text-gray-400'></i>
+                <p class="text-gray-500 mt-4">Presiona "realizar análisis" para comenzar</p>
             </div>
 
-            <!-- Preview de Imagen -->
-            <div id="imagePreview" class="hidden w-full h-full">
-              <img id="previewImg" src="" alt="Preview" class="w-full h-full object-cover">
+            <!-- Video feed (oculto inicialmente) -->
+            <div id="videoState" class="w-full h-full hidden">
+                <img id="videoStream" 
+                     class="w-full h-full object-cover rounded-2xl" 
+                     alt="Análisis facial en tiempo real">
+                
+                <!-- Overlay para mostrar resultados -->
+                <div id="analysisOverlay" class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
+                    <p id="faceShapeResult">Preparando análisis...</p>
+                    <p id="statusMessage" class="text-xs text-gray-300"></p>
+                </div>
             </div>
           </div>
 
@@ -84,15 +88,15 @@
         <!-- Botones de Acción -->
         <div class="flex flex-col sm:flex-row gap-4 pt-6">
           <form method="POST" class="flex-1">
-            {% csrf_token %}
-            <input type="hidden" id="fotoInput" name="foto" value="">
-            <button 
-              type="submit" 
-              onclick="return validatePhoto()"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full transition duration-300"
-            >
-              realizar análisis
-            </button>
+              {% csrf_token %}
+              <input type="hidden" id="fotoInput" name="foto" value="">
+              <button 
+                  type="button"
+                  onclick="startAnalysis()"
+                  class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full transition duration-300"
+              >
+                  realizar análisis
+              </button>
           </form>
           
           <a href="#" class="flex-1">
@@ -137,5 +141,79 @@ function validatePhoto() {
   return true;
 }
 </script>
+<script>
+function handleVideoError(img) {
+    const overlay = document.getElementById('analysisOverlay');
+    const statusMsg = document.getElementById('statusMessage');
+    statusMsg.textContent = "Error al conectar con la cámara. Reintentando...";
+    
+    // Reintentar cargar el video feed
+    setTimeout(() => {
+        img.src = "{% url 'analysis:video_feed' %}?" + new Date().getTime();
+    }, 3000);
+}
+
+// Función para actualizar el estado del análisis
+function updateAnalysisStatus(message) {
+    const resultElement = document.getElementById('faceShapeResult');
+    if (resultElement) {
+        resultElement.textContent = message;
+    }
+}
+
+// Iniciar la cámara cuando la página cargue
+
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const videoState = document.getElementById('videoState');
+    const initialState = document.getElementById('initialState');
+    const videoStream = document.getElementById('videoStream');
+    const statusMsg = document.getElementById('statusMessage');
+      function startAnalysis() {
+          // Mostrar placeholder de video inmediatamente
+          initialState.classList.add('hidden');
+          videoState.classList.remove('hidden');      
+
+          // Conectar al feed — espera hasta que la etiqueta <img> confirme carga
+          let warmed = false;
+          videoStream.onload = function() {
+              if (warmed) return;
+              warmed = true;
+              statusMsg.textContent = "Cámara iniciada. Ejecutando análisis en 15s...";
+              
+              // Actualizar mensaje cada segundo
+              let secondsLeft = 15;
+              const countdownInterval = setInterval(() => {
+                  secondsLeft--;
+                  if (secondsLeft > 0) {
+                      statusMsg.textContent = `Analizando rostro... ${secondsLeft}s restantes`;
+                  }
+              }, 1000);     
+
+              // esperar 15 segundos con cámara encendida
+              setTimeout(() => {
+                  clearInterval(countdownInterval);
+                  statusMsg.textContent = "Análisis completado. Redirigiendo...";
+                  window.location.href = "{% url 'analysis:results' %}";
+              }, 15000);
+          };      
+
+          // iniciar conexión al stream
+          videoStream.src = "{% url 'analysis:video_feed' %}?" + new Date().getTime();      
+
+          // Mostrar error si no hay respuesta en 8 segundos
+          setTimeout(() => {
+              if (!warmed) {
+                  statusMsg.textContent = "No se detectó respuesta de la cámara. Reintenta.";
+              }
+          }, 8000);
+      }
+
+    // exportar global para usar desde botones
+    window.startAnalysis = startAnalysis;
+});
+</script>
+
 
 {% endblock %}

@@ -1,20 +1,73 @@
-{% extends 'base.html' %}
+
 {% load static %}
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  </head>
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 mt-8">
+<style>
+  .blob-shape {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    animation: morph 8s ease-in-out infinite;
+    filter: blur(1px);
+  }
+
+  @keyframes morph {
+    0%, 100% {
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+      transform: rotate(5deg) scale(1.05);
+    }
+    50% {
+      border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+      transform: rotate(-5deg) scale(0.95);
+    }
+    75% {
+      border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+      transform: rotate(3deg) scale(1.02);
+    }
+  }
+
+  .image-container {
+    position: relative;
+    z-index: 10;
+    width: 350px;
+    height: 450px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  }
+
+  .image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
   <div class="max-w-6xl w-full">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white rounded-lg shadow-2xl overflow-hidden">
       
-      <!-- Lado Izquierdo - Imagen -->
-      <div class="hidden lg:flex bg-gradient-to-br from-gray-600 to-gray-700 items-center justify-center p-12 relative overflow-hidden">
-        <!-- Forma amarilla de fondo -->
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-80 h-80 bg-yellow-400 rounded-3xl transform -rotate-12 opacity-90"></div>
-        </div>
+      <!-- Lado Izquierdo - Imagen con blob -->
+      <div class="hidden lg:flex bg-gradient-to-br from-gray-500 to-gray-600 items-center justify-center p-12 relative overflow-hidden">
+        <!-- Forma blob amarilla animada -->
+        <div class="blob-shape"></div>
         
-        <!-- Imagen dentro -->
-        <div class="relative z-10 w-64 h-64 rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
-          <img src="{% static 'img/login_register.png' %}" alt="Barbería" class="w-full h-full object-cover">
+        <!-- Imagen dentro del blob -->
+        <div class="image-container">
+          <img src="{% static 'img/login_register.png' %}" alt="Barbería">
         </div>
       </div>
 
@@ -38,7 +91,11 @@
               placeholder="Enter your Email here" 
               class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition"
               required
+              autofocus
             >
+            {% if form.email.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+            {% endif %}
           </div>
 
           <!-- Password -->
@@ -52,7 +109,19 @@
               class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition"
               required
             >
+            {% if form.password.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.password.errors.0 }}</p>
+            {% endif %}
           </div>
+
+          <!-- Errores generales (credenciales incorrectas) -->
+          {% if form.non_field_errors %}
+            <div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {% for error in form.non_field_errors %}
+                <p class="text-sm">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
 
           <!-- Botón Iniciar Sesión -->
           <button 
@@ -67,7 +136,7 @@
         <div class="text-center mt-6">
           <p class="text-gray-600">
             ¿No tienes una cuenta? 
-            <a href="{% url 'register' %}" class="text-blue-600 hover:text-blue-800 font-semibold">registrate</a>
+            <a href="{% url 'auth:register' %}" class="text-blue-600 hover:text-blue-800 font-semibold">Regístrate</a>
           </p>
         </div>
       </div>

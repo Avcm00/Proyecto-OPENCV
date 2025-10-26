@@ -17,8 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from apps.facial_analysis.adapters.web import views
+from apps.auth_app.adapters.web import urls 
+from apps.auth_app.adapters.web.views import home
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', home, name='home'), 
     path('facial_analysis/', include('apps.facial_analysis.adapters.web.urls')),
+    path('auth/', include('apps.auth_app.adapters.web.urls')),
+    path('recomendations/', include('apps.recomendations.adapters.web.urls')),
 ]

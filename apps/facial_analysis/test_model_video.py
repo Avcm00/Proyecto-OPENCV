@@ -3,9 +3,7 @@ import numpy as np
 import sys
 import os
 
-# Agregar el directorio raíz del proyecto al path (PROYECTO OPENCV)
-# __file__ es apps/facial_analysis/test_model_video.py
-# dirname(dirname(dirname(__file__))) llega a PROYECTO OPENCV
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 try:

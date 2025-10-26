@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Header con Perfil -->
+    <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+      <div class="flex items-start justify-between mb-8">
+        <!-- Avatar y Info -->
+        <div class="flex items-start gap-4">
+          <div class="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="bx bx-user text-white text-3xl"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">
+              {{ user.profile.full_name|default:"Usuario" }}
+            </h1>
+            <p class="text-gray-600">{{ user.email }}</p>
+          </div>
+        </div>
+        <!-- Botón Edit -->
+        <button type="button" id="editBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition">
+          Edit
+        </button>
+      </div>
+
+      <!-- Formulario de Perfil -->
+      <form method="POST" id="profileForm" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Nombre Completo -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+            <input 
+              type="text" 
+              name="full_name"
+              placeholder="Tu nombre completo"
+              value="{{ user.profile.full_name|default:'' }}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-gray-50"
+              disabled
+              id="full_name"
+            >
+          </div>
+
+          <!-- Altura -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Altura (metros)</label>
+            <input 
+              type="number" 
+              name="height"
+              placeholder="1.75"
+              value="{{ user.profile.height|default:'' }}"
+              step="0.01"
+              min="0.5"
+              max="3.0"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-gray-50"
+              disabled
+              id="height"
+            >
+          </div>
+
+          <!-- Género -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+            <select 
+              name="gender"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-gray-50" 
+              disabled
+              id="gender"
+            >
+              <option value="">Selecciona tu género</option>
+              <option value="male" {% if user.profile.gender == 'male' %}selected{% endif %}>Masculino</option>
+              <option value="female" {% if user.profile.gender == 'female' %}selected{% endif %}>Femenino</option>
+              <option value="other" {% if user.profile.gender == 'other' %}selected{% endif %}>Otro</option>
+              <option value="prefer_not_to_say" {% if user.profile.gender == 'prefer_not_to_say' %}selected{% endif %}>Prefiero no decir</option>
+            </select>
+          </div>
+
+          <!-- Tipo de Rostro (Solo Lectura - Detectado Automáticamente) -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de Rostro 
+              <span class="text-xs text-gray-500">(Detectado automáticamente)</span>
+            </label>
+            <div class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
+              {% if user.profile.face_shape %}
+                {{ user.profile.get_face_shape_display }}
+              {% else %}
+                Aún no detectado - Analiza tu rostro
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Edad -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Edad</label>
+            <input 
+              type="number" 
+              name="age"
+              placeholder="años"
+              value="{{ user.profile.age|default:'' }}"
+              min="13"
+              max="120"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-gray-50"
+              disabled
+              id="age"
+            >
+          </div>
+        </div>
+
+        <!-- Botones de acción (ocultos inicialmente) -->
+        <div id="actionButtons" class="hidden flex gap-4 justify-end mt-6">
+          <button 
+            type="button" 
+            id="cancelBtn"
+            class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded transition"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit"
+            class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded transition"
+          >
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mi Email Address -->
+    <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+      <h2 class="text-xl font-bold text-gray-900 mb-6">My email Address</h2>
+      
+      <div class="flex items-center justify-between p-4 border border-gray-300 rounded-lg bg-gray-50">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" checked class="w-4 h-4 text-blue-600 rounded">
+          <div>
+            <p class="font-semibold text-gray-900">{{ user.email }}</p>
+            <p class="text-sm text-gray-500">{{ user.created_at|timesince }} ago</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mi Historial -->
+    <div class="bg-white rounded-lg shadow-md p-8">
+      <h2 class="text-xl font-bold text-gray-900 mb-8">Mi Historial</h2>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Card 1 -->
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-6 text-center">
+          <p class="text-3xl font-bold text-gray-900">{{ stats.total_analyses|default:0 }}</p>
+          <p class="text-gray-600 font-semibold">Análisis Realizados</p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-6 text-center">
+          <p class="text-3xl font-bold text-gray-900">{{ stats.average_precision|default:"0" }}%</p>
+          <p class="text-gray-600 font-semibold">Precisión Promedio</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-6 text-center">
+          <p class="text-3xl font-bold text-gray-900">{{ stats.average_rating|default:"0.0" }}</p>
+          <p class="text-gray-600 font-semibold">Calificación Promedio</p>
+        </div>
+      </div>
+
+      <!-- Historial de análisis -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">Historial de análisis</h3>
+
+        {% if history %}
+          {% for item in history %}
+          <div class="flex items-center justify-between p-5 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition cursor-pointer">
+            <div>
+              <p class="font-semibold text-gray-900">Fecha</p>
+              <p class="text-sm text-gray-500">{{ item.created_at|date:"F d, Y" }}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold text-gray-900">{{ item.recommendations_count }} recomendaciones</p>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-8 text-gray-500">
+            <p>No hay análisis registrados aún</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Funcionalidad para habilitar/deshabilitar edición
+  const editBtn = document.getElementById('editBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const actionButtons = document.getElementById('actionButtons');
+  const formInputs = document.querySelectorAll('#profileForm input, #profileForm select');
+  
+  editBtn.addEventListener('click', () => {
+    formInputs.forEach(input => input.disabled = false);
+    actionButtons.classList.remove('hidden');
+    editBtn.classList.add('hidden');
+  });
+  
+  cancelBtn.addEventListener('click', () => {
+    formInputs.forEach(input => input.disabled = true);
+    actionButtons.classList.add('hidden');
+    editBtn.classList.remove('hidden');
+    // Recargar la página para restaurar los valores originales
+    window.location.reload();
+  });
+</script>
+{% endblock %}
