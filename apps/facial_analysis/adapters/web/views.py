@@ -7,20 +7,191 @@ from apps.facial_analysis.face_shape_detection import FaceShapeDetector
 from apps.facial_analysis.ml.face_shape_classifier import FaceShapeClassifier
 import cv2
 import numpy as np
-# Create your views here.
-def main(request):
-  return render(request, 'analysis/analysis.html')
+
+from apps.recomendations.core.use_cases import (
+    GenerateHaircutRecommendationsUseCase,
+    GenerateBeardRecommendationsUseCase,
+    SaveRecommendationUseCase
+)
+from apps.recomendations.core.entities import (
+    Recommendation, FaceShape, Gender, HairLength
+)
+from apps.recomendations.adapters.persistence.repositories import (
+    DjangoRecommendationRepository,
+    DjangoStyleRepository
+)
+from apps.recomendations.adapters.ml.recommendation_engine import (
+    RuleBasedRecommendationEngine,
+    StyleCatalogServiceImpl
+)
+
+# Inicializar dependencias de recomendaciones (una vez)
+style_repository = DjangoStyleRepository()
+recommendation_repository = DjangoRecommendationRepository()
+recommendation_engine = RuleBasedRecommendationEngine()
+style_catalog = StyleCatalogServiceImpl(style_repository)
+
+# Mapeo de formas de rostro en español a enums
+FACE_SHAPE_MAPPING = {
+    'oval': FaceShape.OVAL,
+    'ovalado': FaceShape.OVAL,
+    'redondo': FaceShape.REDONDO,
+    'cuadrado': FaceShape.CUADRADO,
+    'rectangular': FaceShape.RECTANGULAR,
+    'corazón': FaceShape.CORAZON,
+    'corazon': FaceShape.CORAZON,
+    'diamante': FaceShape.DIAMANTE,
+    'triangular': FaceShape.TRIANGULAR,
+}
+
+
+def generate_style_recommendations(face_shape_str, gender_str, hair_length_str, user_id):
+    """
+    Genera recomendaciones de estilos basadas en el análisis facial
+    
+    Args:
+        face_shape_str: Forma del rostro detectada (str)
+        gender_str: Género del usuario (str)
+        hair_length_str: Longitud del cabello (str)
+        user_id: ID del usuario
+    
+    Returns:
+        dict con recomendaciones de cortes y barbas
+    """
+    try:
+        # Normalizar y convertir strings a enums
+        face_shape_normalized = face_shape_str.lower().strip()
+        
+        # Buscar en el mapeo
+        face_shape = FACE_SHAPE_MAPPING.get(face_shape_normalized)
+        
+        if not face_shape:
+            # Si no se encuentra, intentar directamente
+            try:
+                face_shape = FaceShape(face_shape_normalized)
+            except ValueError:
+                print(f"Forma de rostro no reconocida: {face_shape_str}")
+                # Usar oval como fallback
+                face_shape = FaceShape.OVAL
+        
+        # Convertir género
+        try:
+            gender = Gender(gender_str.lower())
+        except ValueError:
+            gender = Gender.HOMBRE
+        
+        # Convertir longitud de cabello
+        try:
+            hair_length = HairLength(hair_length_str.lower())
+        except ValueError:
+            hair_length = HairLength.MEDIO
+        
+        print(f"Generando recomendaciones para: {face_shape.value}, {gender.value}, {hair_length.value}")
+        
+        # Generar recomendaciones de corte
+        haircut_use_case = GenerateHaircutRecommendationsUseCase(
+            recommendation_engine, style_catalog
+        )
+        haircut_styles = haircut_use_case.execute(
+            face_shape=face_shape,
+            gender=gender,
+            hair_length=hair_length,
+            max_results=6
+        )
+        
+        print(f"Estilos de corte encontrados: {len(haircut_styles)}")
+        
+        # Generar recomendaciones de barba (solo hombres)
+        beard_styles = []
+        if gender == Gender.HOMBRE:
+            beard_use_case = GenerateBeardRecommendationsUseCase(
+                recommendation_engine, style_catalog
+            )
+            beard_styles = beard_use_case.execute(
+                face_shape=face_shape,
+                gender=gender,
+                max_results=4
+            )
+            print(f"Estilos de barba encontrados: {len(beard_styles)}")
+        
+        # Calcular confidence score
+        confidence = 0.0
+        if haircut_styles:
+            confidence = sum(
+                recommendation_engine.calculate_style_score(
+                    style, face_shape, gender, hair_length
+                )
+                for style in haircut_styles
+            ) / len(haircut_styles)
+            confidence *= 100  # Convertir a porcentaje
+        
+        # Crear y guardar recomendación
+        recommendation = Recommendation(
+            user_id=user_id,
+            face_shape=face_shape,
+            gender=gender,
+            hair_length=hair_length,
+            haircut_styles=haircut_styles,
+            beard_styles=beard_styles,
+            confidence_score=confidence
+        )
+        
+        save_use_case = SaveRecommendationUseCase(recommendation_repository)
+        saved_recommendation = save_use_case.execute(recommendation)
+        
+        # Obtener tips
+        tips = recommendation_engine.get_face_shape_tips(face_shape)
+        
+        # Formatear para el template
+        recommendations = {
+            'id': saved_recommendation.id,
+            'cortes': [
+                {
+                    'id': style.id,
+                    'nombre': style.name,
+                    'descripcion': style.description,
+                    'imagen': style.image_url if style.image_url else 'https://via.placeholder.com/300x400?text=' + style.name.replace(' ', '+'),
+                    'beneficios': style.benefits,
+                    'dificultad': style.difficulty_level.value if hasattr(style.difficulty_level, 'value') else str(style.difficulty_level),
+                    'popularidad': style.popularity_score
+                }
+                for style in haircut_styles
+            ],
+            'barba': [
+                {
+                    'id': style.id,
+                    'nombre': style.name,
+                    'descripcion': style.description,
+                    'imagen': style.image_url if style.image_url else 'https://via.placeholder.com/300x400?text=' + style.name.replace(' ', '+'),
+                    'beneficios': style.benefits,
+                    'mantenimiento': style.maintenance_level.value if hasattr(style.maintenance_level, 'value') else str(style.maintenance_level)
+                }
+                for style in beard_styles
+            ] if beard_styles else None,
+            'confidence': confidence,
+            'tips': tips
+        }
+        
+        print(f"Recomendaciones generadas exitosamente: {len(recommendations['cortes'])} cortes")
+        return recommendations
+        
+    except Exception as e:
+        print(f"Error generando recomendaciones: {e}")
+        traceback.print_exc()
+        return None
+
+
 def results(request):
+    """Vista de resultados del análisis facial con recomendaciones"""
     camera = VideoCamera()
     predictions_collected = False
 
     try:
         start_time = time.time()
-        # aumentar tiempo total y reducir frecuencia para no saturar CPU
-        while time.time() - start_time < 12:  # 12s para asegurar warmup + varias predicciones
-            _ = camera.get_frame()  # get_frame actualiza camera.last_frame internamente
-            # verificar historial de predicciones
-            if len(camera.predictions_history) >= 8:  # recoger al menos 8 predicciones
+        # Recoger predicciones durante 12 segundos
+        while time.time() - start_time < 12:
+            _ = camera.get_frame()
+            if len(camera.predictions_history) >= 8:
                 predictions_collected = True
                 break
             time.sleep(0.15)
@@ -37,10 +208,11 @@ def results(request):
                     'gender': 'no_detectado',
                     'measurements': None
                 },
-                'error_message': "No se pudo detectar un rostro. Por favor, asegúrate de estar bien iluminado y mirando directamente a la cámara."
+                'error_message': "No se pudo detectar un rostro. Por favor, asegúrate de estar bien iluminado y mirando directamente a la cámara.",
+                'recommendations': None
             }
         else:
-            # Usar el último frame en formato array (no los bytes JPEG)
+            # Usar el último frame
             frame_array = getattr(camera, 'last_frame', None)
             face_data = None
             try:
@@ -51,9 +223,24 @@ def results(request):
                 face_data = None
 
             metrics = camera.calculate_facial_metrics(face_data[0]) if face_data else None
-
             primary_shape = face_shape_results[0][0] if face_shape_results else "No detectado"
             primary_confidence = face_shape_results[0][1] if face_shape_results else 0
+
+            # Generar recomendaciones automáticamente
+            recommendations = None
+            if primary_shape != "No detectado":
+                print(f"Generando recomendaciones para forma: {primary_shape}")
+                recommendations = generate_style_recommendations(
+                    face_shape_str=primary_shape,
+                    gender_str='hombre',  # Puedes hacer esto dinámico con un formulario
+                    hair_length_str='medio',  # Puedes solicitar al usuario
+                    user_id=request.user.id if request.user.is_authenticated else 1
+                )
+                
+                if recommendations:
+                    print(f"✓ Recomendaciones generadas: {len(recommendations['cortes'])} cortes")
+                else:
+                    print("✗ No se pudieron generar recomendaciones")
 
             context = {
                 'analysis': {
@@ -62,7 +249,8 @@ def results(request):
                     'primary_confidence': primary_confidence,
                     'gender': 'hombre',
                     'measurements': metrics
-                }
+                },
+                'recommendations': recommendations
             }
 
         return render(request, 'analysis/results.html', context)
@@ -72,6 +260,9 @@ def results(request):
             camera.video.release()
 
 
+def main(request):
+    """Vista principal del análisis"""
+    return render(request, 'analysis/analysis.html')
 
 
 class VideoCamera:
@@ -82,14 +273,13 @@ class VideoCamera:
         self.last_frame = None
         try:
             self.classifier = FaceShapeClassifier()
-            # Si el modelo ya está cargado, reparar compatibilidad de estimadores sklearn
+            # Reparar compatibilidad de estimadores sklearn
             try:
                 model = getattr(self.classifier, 'model', None)
                 if model is not None:
                     estimators = getattr(model, 'estimators_', None)
                     if estimators:
                         for est in estimators:
-                            # versiones antiguas pueden no tener este atributo -> establecer None
                             if not hasattr(est, 'monotonic_cst'):
                                 setattr(est, 'monotonic_cst', None)
             except Exception:
@@ -125,7 +315,6 @@ class VideoCamera:
         success, image = self.video.read()
         if not success:
             return None
-        # guardar último frame array para uso posterior en results
         self.last_frame = image.copy()
         try:
             processed_image, face_data = self.face_detector.detect_face_shape(image.copy())
@@ -138,11 +327,9 @@ class VideoCamera:
                 try:
                     features = self.classifier.extract_features(face_region, face_info['measurements'])
                     features = np.array(features).reshape(1, -1)
-                    # re-parchar estimadores si falla la primera vez (segundo intento)
                     try:
                         prediction, confidence = self.classifier.predict(features)
-                    except AttributeError as ae:
-                        # intentar reparar estimadores y reintentar
+                    except AttributeError:
                         model = getattr(self.classifier, 'model', None)
                         if model is not None:
                             estimators = getattr(model, 'estimators_', None)
@@ -174,24 +361,19 @@ class VideoCamera:
     def calculate_facial_metrics(self, face_info):
         measurements = face_info.get('measurements', {}) if face_info else {}
         
-        # Factor de conversión basado en la distancia entre ojos (6.3 cm promedio)
         eye_distance_px = measurements.get('eye_distance', 0)
         if eye_distance_px > 0:
-            # Calculamos cuántos píxeles equivalen a 1 cm
             px_to_cm = 6.3 / eye_distance_px
         else:
             px_to_cm = 0
 
-        # Convertir medidas de píxeles a centímetros
         height = measurements.get('height', 0) * px_to_cm
         width = measurements.get('width', 0) * px_to_cm
         
-        # Calcular tercios verticales
         upper_third = height * 0.3333
         middle_third = height * 0.3333
         lower_third = height * 0.3333
         
-        # Calcular simetría
         symmetry = 0
         if width:
             forehead = measurements.get('forehead_width', 0) * px_to_cm
@@ -208,8 +390,8 @@ class VideoCamera:
             'forehead_width': round(measurements.get('forehead_width', 0) * px_to_cm, 1),
             'jaw_width': round(measurements.get('jaw_width', 0) * px_to_cm, 1),
             'nose_length': round(measurements.get('nose_length', 0) * px_to_cm, 1),
-            'ratio': round(measurements.get('ratio', 0), 2),  # Este es un ratio, no necesita conversión
-            'symmetry': round(symmetry, 1)  # Porcentaje, no necesita conversión
+            'ratio': round(measurements.get('ratio', 0), 2),
+            'symmetry': round(symmetry, 1)
         }
 
 
@@ -219,6 +401,7 @@ def gen(camera):
         if frame is not None:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
 
 @gzip.gzip_page
 def video_feed(request):

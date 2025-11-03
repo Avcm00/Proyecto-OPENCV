@@ -1,4 +1,3 @@
-# apps/auth_app/adapters/web/views.py
 from django.contrib.auth import login
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin

@@ -159,101 +159,106 @@
       </div>
     </div>
 
-    <!-- Recomendaciones Principales -->
-    <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-3xl font-bold text-gray-900">✂️ Recomendaciones de Cortes</h2>
-        <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
-          Top 3 para ti
-        </span>
-      </div>
+    {% if recommendations %}
+      <!-- Recomendaciones Principales -->
+      <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-3xl font-bold text-gray-900">✂️ Recomendaciones de Cortes</h2>
+          <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
+            Top 3 para ti
+          </span>
+        </div>
+      
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {% for corte in recommendations.cortes|slice:":3" %}
+          <div class="group">
+            <div class="relative w-full h-64 bg-gray-300 rounded-xl overflow-hidden mb-4 shadow-lg">
+              <img src="{{ corte.imagen }}" 
+                   alt="{{ corte.nombre }}" 
+                   class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+              <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow">
+                <span class="text-xs font-bold text-gray-900">#{{ forloop.counter }}</span>
+              </div>
+            </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {% for corte in recommendations.cortes|slice:":3" %}
-        <div class="group">
-          <div class="relative w-full h-64 bg-gray-300 rounded-xl overflow-hidden mb-4 shadow-lg">
-            <img src="{{ corte.imagen }}" 
-                 alt="{{ corte.nombre }}" 
-                 class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
-            <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow">
-              <span class="text-xs font-bold text-gray-900">#{{ forloop.counter }}</span>
+            <div class="text-center space-y-3">
+              <div class="border-b-2 border-gray-200 pb-3">
+                <h3 class="text-lg font-bold text-gray-900">{{ corte.nombre }}</h3>
+                <p class="text-sm text-gray-600 mt-1">{{ corte.descripcion }}</p>
+              </div>
+
+              <div class="flex flex-wrap gap-2 justify-center pt-2">
+                {% for beneficio in corte.beneficios %}
+                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                  {{ beneficio }}
+                </span>
+                {% endfor %}
+              </div>
             </div>
           </div>
-          
-          <div class="text-center space-y-3">
-            <div class="border-b-2 border-gray-200 pb-3">
-              <h3 class="text-lg font-bold text-gray-900">{{ corte.nombre }}</h3>
-              <p class="text-sm text-gray-600 mt-1">{{ corte.descripcion }}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Tips Personalizados -->
+      {% if recommendations.tips %}
+      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 mb-12 shadow-2xl text-white">
+        <div class="flex items-start">
+          <div class="text-4xl mr-4">💡</div>
+          <div>
+            <h3 class="text-2xl font-bold mb-3">Consejos para tu Forma de Rostro</h3>
+            <p class="text-lg opacity-95 mb-4">{{ recommendations.tips.haircut.description }}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 class="font-semibold mb-2">✅ Recomendados:</h4>
+                <ul class="text-sm space-y-1">
+                  {% for rec in recommendations.tips.haircut.recommend %}
+                  <li>• {{ rec }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+
+              {% if recommendations.tips.haircut.avoid %}
+              <div>
+                <h4 class="font-semibold mb-2">❌ Evitar:</h4>
+                <ul class="text-sm space-y-1">
+                  {% for avoid in recommendations.tips.haircut.avoid %}
+                  <li>• {{ avoid }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
             </div>
-            
-            <div class="flex flex-wrap gap-2 justify-center pt-2">
-              {% for beneficio in corte.beneficios %}
-              <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Recomendaciones de Barba (si aplica) -->
+      {% if recommendations.barba %}
+      <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">🧔 Estilos de Barba</h2>
+      
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {% for barba in recommendations.barba %}
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
+            <h3 class="text-xl font-bold text-gray-900 mb-3">{{ barba.nombre }}</h3>
+            <p class="text-gray-700 mb-4">{{ barba.descripcion }}</p>
+
+            <div class="flex flex-wrap gap-2">
+              {% for beneficio in barba.beneficios %}
+              <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
                 {{ beneficio }}
               </span>
               {% endfor %}
             </div>
           </div>
+          {% endfor %}
         </div>
-        {% endfor %}
       </div>
-    </div>
-
-    <!-- Recomendaciones de Barba (si es hombre) -->
-    {% if analysis.gender == 'hombre' and recommendations.barba %}
-    <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
-      <h2 class="text-3xl font-bold text-gray-900 mb-8"> Estilos de Barba</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {% for barba in recommendations.barba %}
-        <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
-          <h3 class="text-xl font-bold text-gray-900 mb-3">{{ barba.nombre }}</h3>
-          <p class="text-gray-700 mb-4">{{ barba.descripcion }}</p>
-          
-          <div class="flex flex-wrap gap-2">
-            {% for beneficio in barba.beneficios %}
-            <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-              {{ beneficio }}
-            </span>
-            {% endfor %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Otras Alternativas -->
-    <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 shadow-2xl">
-      <h2 class="text-3xl font-bold text-gray-900 mb-8">Otras Alternativas</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {% for corte in recommendations.cortes|slice:"3:" %}
-        <div class="border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-blue-300 transition">
-          <div class="h-48 bg-gray-300 overflow-hidden">
-            <img src="{{ corte.imagen }}" 
-                 alt="{{ corte.nombre }}" 
-                 class="w-full h-full object-cover hover:scale-105 transition">
-          </div>
-          <div class="p-5">
-            <h4 class="text-md font-bold text-gray-900 mb-2">{{ corte.nombre }}</h4>
-            <p class="text-xs text-gray-600 mb-3">{{ corte.descripcion }}</p>
-            <div class="flex flex-wrap gap-1">
-              {% for beneficio in corte.beneficios %}
-              <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                {{ beneficio }}
-              </span>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <div class="col-span-3 text-center py-8 text-gray-500">
-          <p>Todas las recomendaciones principales ya se mostraron arriba</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
+      {% endif %}
+      {% endif %}
 
     <!-- Botones de Acción -->
     <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
