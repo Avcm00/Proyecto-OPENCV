@@ -159,6 +159,26 @@
       </div>
     </div>
 
+
+<!-- DEBUG: BORRAR DESPUÉS -->
+<div style="background: yellow; border: 3px solid red; padding: 20px; margin: 20px;">
+  <h2 style="color: red;">🔍 DEBUG</h2>
+  <p><strong>recommendations existe:</strong> {{ recommendations|yesno:"SÍ,NO" }}</p>
+  {% if recommendations %}
+    <p>✓ Cortes: {{ recommendations.cortes|length }}</p>
+    <p>✓ Barbas: {{ recommendations.barba|length|default:"0" }}</p>
+    <p>✓ Tips: {{ recommendations.tips|length }}</p>
+    {% if recommendations.cortes %}
+      <p>✓ Primer corte: {{ recommendations.cortes.0.nombre }}</p>
+    {% else %}
+      <p style="color:red;">✗ recommendations.cortes VACÍO</p>
+    {% endif %}
+  {% else %}
+    <p style="color:red; font-size:20px;">✗ RECOMMENDATIONS ES NONE</p>
+  {% endif %}
+  <p>Forma: {{ analysis.primary_shape }}</p>
+</div>
+
     {% if recommendations %}
       <!-- Recomendaciones Principales -->
       <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">

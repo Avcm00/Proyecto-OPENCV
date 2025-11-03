@@ -1,7 +1,7 @@
 import time
 import traceback
 from django.shortcuts import render
-from django.http import StreamingHttpResponse, HttpResponse
+from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.views.decorators import gzip
 from apps.facial_analysis.face_shape_detection import FaceShapeDetector
 from apps.facial_analysis.ml.face_shape_classifier import FaceShapeClassifier
@@ -58,20 +58,31 @@ def generate_style_recommendations(face_shape_str, gender_str, hair_length_str, 
     Returns:
         dict con recomendaciones de cortes y barbas
     """
+    print("\n" + ">" * 80)
+    print(f">>> ENTRANDO A generate_style_recommendations")
+    print(f"    face_shape_str = '{face_shape_str}'")
+    print(f"    gender_str = '{gender_str}'")
+    print(f"    hair_length_str = '{hair_length_str}'")
+    print(f"    user_id = {user_id}")
+    
     try:
         # Normalizar y convertir strings a enums
         face_shape_normalized = face_shape_str.lower().strip()
+        print(f"    Normalizado: '{face_shape_normalized}'")
         
         # Buscar en el mapeo
         face_shape = FACE_SHAPE_MAPPING.get(face_shape_normalized)
+        print(f"    En mapeo: {face_shape}")
         
         if not face_shape:
             # Si no se encuentra, intentar directamente
+            print(f"    ⚠️ No está en mapeo, intentando conversión directa...")
             try:
                 face_shape = FaceShape(face_shape_normalized)
-            except ValueError:
-                print(f"Forma de rostro no reconocida: {face_shape_str}")
-                # Usar oval como fallback
+                print(f"    ✓ Conversión directa exitosa: {face_shape}")
+            except ValueError as ve:
+                print(f"    ✗ ValueError en conversión: {ve}")
+                print(f"    Usando OVAL como fallback")
                 face_shape = FaceShape.OVAL
         
         # Convertir género
@@ -83,6 +94,7 @@ def generate_style_recommendations(face_shape_str, gender_str, hair_length_str, 
         # Convertir longitud de cabello
         try:
             hair_length = HairLength(hair_length_str.lower())
+            
         except ValueError:
             hair_length = HairLength.MEDIO
         
@@ -172,12 +184,17 @@ def generate_style_recommendations(face_shape_str, gender_str, hair_length_str, 
             'tips': tips
         }
         
-        print(f"Recomendaciones generadas exitosamente: {len(recommendations['cortes'])} cortes")
+        print(f"    ✓✓✓ Recomendaciones generadas exitosamente: {len(recommendations['cortes'])} cortes")
+        print("<" * 80 + "\n")
         return recommendations
-        
+        print("DEBUG >>> haircut_styles =", haircut_styles)
+        print("DEBUG >>> beard_styles =", beard_styles)
+
     except Exception as e:
-        print(f"Error generando recomendaciones: {e}")
+        print(f"    ✗✗✗ ERROR CRÍTICO en generate_style_recommendations: {e}")
+        print(f"    Tipo de error: {type(e).__name__}")
         traceback.print_exc()
+        print("<" * 80 + "\n")
         return None
 
 
@@ -229,18 +246,35 @@ def results(request):
             # Generar recomendaciones automáticamente
             recommendations = None
             if primary_shape != "No detectado":
-                print(f"Generando recomendaciones para forma: {primary_shape}")
-                recommendations = generate_style_recommendations(
-                    face_shape_str=primary_shape,
-                    gender_str='hombre',  # Puedes hacer esto dinámico con un formulario
-                    hair_length_str='medio',  # Puedes solicitar al usuario
-                    user_id=request.user.id if request.user.is_authenticated else 1
-                )
+                print("=" * 80)
+                print(f"🔍 INICIANDO GENERACIÓN DE RECOMENDACIONES")
+                print(f"   Forma detectada: '{primary_shape}'")
+                print(f"   Tipo: {type(primary_shape)}")
+                print("=" * 80)
                 
-                if recommendations:
-                    print(f"✓ Recomendaciones generadas: {len(recommendations['cortes'])} cortes")
-                else:
-                    print("✗ No se pudieron generar recomendaciones")
+                try:
+                    recommendations = generate_style_recommendations(
+                        face_shape_str=primary_shape,
+                        gender_str='hombre',
+                        hair_length_str='medio',
+                        user_id=request.user.id if request.user.is_authenticated else 1
+                    )
+                    
+                    if recommendations:
+                        print(f"✓✓✓ ÉXITO: {len(recommendations['cortes'])} cortes generados")
+                        print(f"    Primera recomendación: {recommendations['cortes'][0]['nombre']}")
+                    else:
+                        print("✗✗✗ ERROR: generate_style_recommendations retornó None")
+                        
+                except Exception as e:
+                    print(f"✗✗✗ EXCEPCIÓN al generar recomendaciones: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    recommendations = None
+                
+                print("=" * 80)
+            else:
+                print("⚠️ No se generan recomendaciones: primary_shape = 'No detectado'")
 
             context = {
                 'analysis': {
@@ -262,7 +296,10 @@ def results(request):
 
 def main(request):
     """Vista principal del análisis"""
+    global stop_camera
+    stop_camera = False  # 🔄 Reiniciar bandera cuando se carga la página principal
     return render(request, 'analysis/analysis.html')
+
 
 
 class VideoCamera:
@@ -312,6 +349,12 @@ class VideoCamera:
         return [(face_type, percentage) for face_type, percentage, _ in results]
 
     def get_frame(self):
+        global stop_camera
+        if stop_camera:
+            print("📷 get_frame detenido: stop_camera=True")
+            if hasattr(self, 'video') and self.video.isOpened():
+                self.video.release()
+            return None
         success, image = self.video.read()
         if not success:
             return None
@@ -396,11 +439,28 @@ class VideoCamera:
 
 
 def gen(camera):
-    while True:
-        frame = camera.get_frame()
-        if frame is not None:
+    global stop_camera
+    try:
+        while True:
+            if stop_camera:
+                print("📷 Stream detenido por stop_camera")
+                break
+            frame = camera.get_frame()
+            if frame is None:
+                print("⚠️ No se pudo capturar frame (cámara desconectada o detenida)")
+                break
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    finally:
+        if hasattr(camera, 'video') and camera.video.isOpened():
+            camera.video.release()
+        print("📷 Cámara liberada correctamente")
+        
+def stop_video(request):
+    global stop_camera
+    stop_camera = True
+    print("📷 Señal recibida: detener cámara")
+    return JsonResponse({'status': 'ok', 'message': 'Camera stopped'})
 
 
 @gzip.gzip_page

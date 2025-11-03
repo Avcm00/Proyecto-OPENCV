@@ -10,7 +10,7 @@ from django.contrib.postgres.fields import ArrayField
 
 # Para versiones de Django < 3.1 sin PostgreSQL
 class RecommendationModel(models.Model):
-    user_id = models.IntegerField(db_index=True)
+    user_id = models.UUIDField()
     face_shape = models.CharField(max_length=50)
     gender = models.CharField(max_length=20)
     hair_length = models.CharField(max_length=20)

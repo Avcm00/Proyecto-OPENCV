@@ -160,6 +160,19 @@ function updateAnalysisStatus(message) {
         resultElement.textContent = message;
     }
 }
+function stopCamera() {
+    fetch("/analysis/stop_video/")
+        .then(res => res.json())
+        .then(data => console.log("📷 Cámara detenida:", data))
+        .catch(err => console.error("Error al detener cámara:", err));
+}
+
+document.getElementById("stop-btn").addEventListener("click", () => {
+    stopCamera();
+});
+window.addEventListener("beforeunload", () => {
+    stopCamera();
+    });
 
 // Iniciar la cámara cuando la página cargue
 
@@ -204,10 +217,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
           // Mostrar error si no hay respuesta en 8 segundos
           setTimeout(() => {
-              if (!warmed) {
-                  statusMsg.textContent = "No se detectó respuesta de la cámara. Reintenta.";
-              }
-          }, 8000);
+            clearInterval(countdownInterval);
+            statusMsg.textContent = "Análisis completado. Redirigiendo...";
+
+    // 🚫 Detener la cámara en el servidor antes de redirigir
+            fetch("{% url 'analysis:stop_video' %}")
+              .then(() => {
+                window.location.href = "{% url 'analysis:results' %}";
+                });
+        }, 15000);
       }
 
     // exportar global para usar desde botones
