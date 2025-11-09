@@ -179,19 +179,25 @@
   <p>Forma: {{ analysis.primary_shape }}</p>
 </div>
 
-    {% if recommendations %}
-      <!-- Recomendaciones Principales -->
-      <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
-        <div class="flex items-center justify-between mb-8">
-          <h2 class="text-3xl font-bold text-gray-900">✂️ Recomendaciones de Cortes</h2>
-          <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
+   {% if recommendations %}
+<div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold text-gray-900">
+            ✂️ Recomendaciones de Cortes 
+            {% if analysis.gender == 'male' %}
+            para Hombre
+            {% else %}
+            para Mujer
+            {% endif %}
+        </h2>
+        <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
             Top 3 para ti
-          </span>
-        </div>
-      
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {% for corte in recommendations.cortes|slice:":3" %}
-          <div class="group">
+        </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {% for corte in recommendations.cortes|slice:":3" %}
+        <div class="group">
             <div class="relative w-full h-64 bg-gray-300 rounded-xl overflow-hidden mb-4 shadow-lg">
               <img src="{{ corte.imagen }}" 
                    alt="{{ corte.nombre }}" 
@@ -202,10 +208,13 @@
             </div>
 
             <div class="text-center space-y-3">
-              <div class="border-b-2 border-gray-200 pb-3">
-                <h3 class="text-lg font-bold text-gray-900">{{ corte.nombre }}</h3>
-                <p class="text-sm text-gray-600 mt-1">{{ corte.descripcion }}</p>
-              </div>
+                <div class="border-b-2 border-gray-200 pb-3">
+                    <h3 class="text-lg font-bold text-gray-900">{{ corte.nombre }}</h3>
+                    <p class="text-sm text-gray-600 mt-1">{{ corte.descripcion }}</p>
+                    <p class="text-xs text-blue-600 mt-1">
+                        Ideal para cabello {{ corte.tipo_cabello }}
+                    </p>
+                </div>
 
               <div class="flex flex-wrap gap-2 justify-center pt-2">
                 {% for beneficio in corte.beneficios %}
@@ -256,7 +265,9 @@
       {% endif %}
 
       <!-- Recomendaciones de Barba (si aplica) -->
-      {% if recommendations.barba %}
+      {% if analysis.gender == 'male' and recommendations.barba %}
+
+
       <div class="bg-white rounded-3xl border-2 border-gray-200 p-12 mb-12 shadow-2xl">
         <h2 class="text-3xl font-bold text-gray-900 mb-8">🧔 Estilos de Barba</h2>
       

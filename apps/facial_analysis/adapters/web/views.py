@@ -1,8 +1,10 @@
 import time
 import traceback
+from celery import uuid
 from django.shortcuts import render
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.views.decorators import gzip
+from apps.auth_app.adapters.persistence.models import ProfileModel
 from apps.facial_analysis.face_shape_detection import FaceShapeDetector
 from apps.facial_analysis.ml.face_shape_classifier import FaceShapeClassifier
 import cv2
@@ -30,13 +32,13 @@ style_repository = DjangoStyleRepository()
 recommendation_repository = DjangoRecommendationRepository()
 recommendation_engine = RuleBasedRecommendationEngine()
 style_catalog = StyleCatalogServiceImpl(style_repository)
-
+stop_camera = False  # Bandera global para detener la cámara
 # Mapeo de formas de rostro en español a enums
 FACE_SHAPE_MAPPING = {
     'oval': FaceShape.OVAL,
-    'ovalado': FaceShape.OVAL,
-    'redondo': FaceShape.REDONDO,
-    'cuadrado': FaceShape.CUADRADO,
+    'ovalada': FaceShape.OVAL,
+    'redonda': FaceShape.REDONDO,
+    'cuadrada': FaceShape.CUADRADO,
     'rectangular': FaceShape.RECTANGULAR,
     'corazón': FaceShape.CORAZON,
     'corazon': FaceShape.CORAZON,
@@ -198,6 +200,7 @@ def generate_style_recommendations(face_shape_str, gender_str, hair_length_str, 
         return None
 
 
+
 def results(request):
     """Vista de resultados del análisis facial con recomendaciones"""
     camera = VideoCamera()
@@ -228,6 +231,7 @@ def results(request):
                 'error_message': "No se pudo detectar un rostro. Por favor, asegúrate de estar bien iluminado y mirando directamente a la cámara.",
                 'recommendations': None
             }
+
         else:
             # Usar el último frame
             frame_array = getattr(camera, 'last_frame', None)
@@ -243,35 +247,45 @@ def results(request):
             primary_shape = face_shape_results[0][0] if face_shape_results else "No detectado"
             primary_confidence = face_shape_results[0][1] if face_shape_results else 0
 
+            # 🧠 Obtener género del perfil
+            user_profile = None
+            user_gender = "prefer_not_to_say"
+
+            if request.user.is_authenticated:
+                try:
+                    user_profile = ProfileModel.objects.get(user=request.user)
+                    user_gender = user_profile.gender or "prefer_not_to_say"
+                except ProfileModel.DoesNotExist:
+                    print("⚠️ El usuario autenticado no tiene un perfil asociado.")
+
             # Generar recomendaciones automáticamente
             recommendations = None
             if primary_shape != "No detectado":
                 print("=" * 80)
                 print(f"🔍 INICIANDO GENERACIÓN DE RECOMENDACIONES")
                 print(f"   Forma detectada: '{primary_shape}'")
-                print(f"   Tipo: {type(primary_shape)}")
+                print(f"   Género del perfil: '{user_gender}'")
                 print("=" * 80)
-                
+
                 try:
                     recommendations = generate_style_recommendations(
                         face_shape_str=primary_shape,
-                        gender_str='hombre',
+                        gender_str=user_gender,
                         hair_length_str='medio',
-                        user_id=request.user.id if request.user.is_authenticated else 1
+                        user_id=str(request.user.id) if request.user.is_authenticated else str(uuid.uuid4())
                     )
-                    
+
                     if recommendations:
                         print(f"✓✓✓ ÉXITO: {len(recommendations['cortes'])} cortes generados")
                         print(f"    Primera recomendación: {recommendations['cortes'][0]['nombre']}")
                     else:
                         print("✗✗✗ ERROR: generate_style_recommendations retornó None")
-                        
+
                 except Exception as e:
                     print(f"✗✗✗ EXCEPCIÓN al generar recomendaciones: {e}")
-                    import traceback
                     traceback.print_exc()
                     recommendations = None
-                
+
                 print("=" * 80)
             else:
                 print("⚠️ No se generan recomendaciones: primary_shape = 'No detectado'")
@@ -281,7 +295,7 @@ def results(request):
                     'face_shape_results': face_shape_results,
                     'primary_shape': primary_shape,
                     'primary_confidence': primary_confidence,
-                    'gender': 'hombre',
+                    'gender': user_gender,
                     'measurements': metrics
                 },
                 'recommendations': recommendations
@@ -292,8 +306,7 @@ def results(request):
     finally:
         if hasattr(camera, 'video') and camera.video.isOpened():
             camera.video.release()
-
-
+            
 def main(request):
     """Vista principal del análisis"""
     global stop_camera

@@ -1,6 +1,7 @@
 # apps/auth_app/domain/entities.py
 from dataclasses import dataclass
-from shared.core.base_entities import Entity
+
+from apps.shared import Entity
 
 @dataclass
 class User(Entity):

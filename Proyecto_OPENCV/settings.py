@@ -106,16 +106,41 @@ LOGOUT_REDIRECT_URL = '/auth/login/'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+#base de datos local con postgresql
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'opencv_db',
         'USER': 'postgres',
-        'PASSWORD': '12345678',
+        'PASSWORD': '12346578',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
+
+#base de datos remota en AWS RDS PostgreSQL
+'''
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mi-base-dev',
+        'USER': 'admin_opencv',
+        'PASSWORD': 'gyNiDgFe9v88A48',
+        'HOST': 'mi-base-dev.cr4g8qw8cgqc.us-east-2.rds.amazonaws.com',
+        'PORT': '5432',
+    }
+}
+'''
+'''
+DATABASES = { 
+     'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': BASE_DIR / 'db.sqlite3'
+     }
+ }
+'''
+##Si no funciona usar esta configuración local
 
 
 # Password validation

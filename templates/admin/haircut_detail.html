@@ -1,0 +1,146 @@
+<!-- templates/recomendations/haircut_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <a href="{% url 'recomendations:haircuts_list' %}" 
+             class="text-gray-600 hover:text-gray-900 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+          </a>
+          <h1 class="text-3xl font-bold text-gray-900">Detalle del Corte</h1>
+        </div>
+        <div class="flex gap-2">
+          <a href="{% url 'recomendations:haircut_edit' haircut.id %}" 
+             class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition flex items-center">
+            <i class='bx bx-edit text-lg mr-2'></i>
+            Editar
+          </a>
+          <form method="POST" action="{% url 'recomendations:haircut_delete' haircut.id %}" 
+                onsubmit="return confirm('¿Estás seguro de eliminar este corte?');">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center">
+              <i class='bx bx-trash text-lg mr-2'></i>
+              Eliminar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Imagen -->
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden border-t-4 border-yellow-400">
+        {% if haircut.image_url %}
+          <img src="{{ haircut.image_url }}" 
+               alt="{{ haircut.name }}"
+               class="w-full h-96 object-cover">
+        {% else %}
+          <div class="w-full h-96 flex items-center justify-center bg-gradient-to-br from-yellow-100 to-yellow-200">
+            <i class='bx bx-cut text-yellow-600' style="font-size: 120px;"></i>
+          </div>
+        {% endif %}
+        
+        <!-- Badge de Popularidad -->
+        <div class="p-4 bg-yellow-50 border-t border-yellow-200">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-gray-700">Popularidad</span>
+            <div class="flex items-center">
+              <div class="flex">
+                {% for i in "12345678910" %}
+                  {% if forloop.counter <= haircut.popularity_score %}
+                    <i class='bx bxs-star text-yellow-400 text-xl'></i>
+                  {% else %}
+                    <i class='bx bx-star text-gray-300 text-xl'></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="ml-2 text-lg font-bold text-yellow-600">{{ haircut.popularity_score }}/10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información -->
+      <div class="space-y-6">
+        
+        <!-- Título y Descripción -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border-t-4 border-yellow-400">
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">{{ haircut.name }}</h2>
+          <p class="text-gray-600 leading-relaxed">{{ haircut.description }}</p>
+        </div>
+
+        <!-- Características -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <i class='bx bx-info-circle text-yellow-400 text-2xl mr-2'></i>
+            Características
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600 font-medium">Género Adecuado:</span>
+              <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold">
+                {{ haircut.suitable_for_gender }}
+              </span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600 font-medium">Longitud Requerida:</span>
+              <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-bold">
+                {{ haircut.hair_length_required }}
+              </span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600 font-medium">Dificultad:</span>
+              <div class="flex items-center">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= haircut.difficulty_level %}
+                    <i class='bx bxs-star text-blue-500 text-lg'></i>
+                  {% else %}
+                    <i class='bx bx-star text-gray-300 text-lg'></i>
+                  {% endif %}
+                {% endfor %}
+                <span class="ml-2 text-sm font-bold text-gray-700">{{ haircut.difficulty_level }}/5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formas de Rostro -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <i class='bx bx-user text-yellow-400 text-2xl mr-2'></i>
+            Formas de Rostro Compatibles
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            {% for shape in haircut.suitable_shapes %}
+            <span class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-4 py-2 rounded-lg text-sm font-bold shadow-sm">
+              {{ shape }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Metadatos -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <div class="text-xs text-gray-500 space-y-1">
+            <p><strong>Creado:</strong> {{ haircut.created_at|date:"d/m/Y H:i" }}</p>
+            <p><strong>Última actualización:</strong> {{ haircut.updated_at|date:"d/m/Y H:i" }}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

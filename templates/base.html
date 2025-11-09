@@ -1,27 +1,43 @@
+{% load static %}
 <!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Barber IA{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
   </head>
-  <body class="flex flex-col min-h-screen bg-gray-50">
+  <body class="flex flex-col min-h-screen bg-gray-50" x-data="{ sidebarOpen: true }">
     <!-- NAVBAR -->
     <nav class="bg-yellow-400 shadow-md sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- Logo -->
-          <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 border-2 border-black rounded-full flex items-center justify-center">
-              <i class="bx bx-cut text-black text-lg"></i>
+          <div class="flex items-center space-x-4">
+            <!-- Botón Toggle Dashboard (solo visible para administradores) -->
+            {% if user.is_authenticated and user.groups.all.0.name == 'Administrador' %}
+            <button 
+              @click="sidebarOpen = !sidebarOpen"
+              class="text-black hover:text-gray-700 transition focus:outline-none"
+              title="Toggle Dashboard"
+            >
+              <i class="bx bx-menu text-2xl"></i>
+            </button>
+            {% endif %}
+
+            <!-- Logo -->
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 border-2 border-black rounded-full flex items-center justify-center">
+                <i class="bx bx-cut text-black text-lg"></i>
+              </div>
+              <a href="{% url 'home' %}" class="text-black font-bold text-xl italic">Barber IA</a>
             </div>
-            <a href="#" class="text-black font-bold text-xl italic">Barber IA</a>
           </div>
 
+          {% if user.is_authenticated %}
           <!-- Menu Items -->
           <div class="hidden md:flex space-x-8">
-            <a href="#" class="text-black font-semibold hover:text-gray-700 transition">Home</a>
+            <a href="{% url 'home' %}" class="text-black font-semibold hover:text-gray-700 transition">Home</a>
             <a href="{% url 'analysis:main' %}" class="text-black font-semibold hover:text-gray-700 transition">Análisis</a>
             <a href="{% url 'auth:profile' %}" class="text-black font-semibold hover:text-gray-700 transition">Perfil</a>
           </div>
@@ -32,86 +48,85 @@
               <i class="bx bx-search text-2xl"></i>
             </button>
             
-            {% if user.is_authenticated %}
-              <!-- User Dropdown -->
-              <div class="relative" x-data="{ open: false }">
-                <button 
-                  @click="open = !open"
-                  @click.away="open = false"
-                  class="flex items-center gap-2 text-black hover:text-gray-700 transition focus:outline-none"
-                >
-                  <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                    <i class='bx bx-user text-yellow-400 text-lg'></i>
-                  </div>
-                  <span class="font-semibold hidden sm:block">
-                    {{ user.profile.full_name|default:user.email|truncatewords:2 }}
-                  </span>
-                  <i class='bx bx-chevron-down text-lg'></i>
-                </button>
-
-                <!-- Dropdown Menu -->
-                <div 
-                  x-show="open"
-                  x-transition:enter="transition ease-out duration-100"
-                  x-transition:enter-start="transform opacity-0 scale-95"
-                  x-transition:enter-end="transform opacity-100 scale-100"
-                  x-transition:leave="transition ease-in duration-75"
-                  x-transition:leave-start="transform opacity-100 scale-100"
-                  x-transition:leave-end="transform opacity-0 scale-95"
-                  class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200"
-                  style="display: none;"
-                >
-                  <!-- User Info -->
-                  <div class="px-4 py-3 border-b border-gray-200">
-                    <p class="text-sm font-medium text-gray-900 truncate">
-                      {{ user.profile.full_name|default:"Usuario" }}
-                    </p>
-                    <p class="text-xs text-gray-500 truncate">
-                      {{ user.email }}
-                    </p>
-                  </div>
-
-                  <!-- Menu Items -->
-                  <a 
-                    href="{% url 'auth:profile' %}" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-                  >
-                    <i class='bx bx-user mr-2'></i>
-                    Mi Perfil
-                  </a>
-                  
-                  <a 
-                    href="#" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-                  >
-                    <i class='bx bx-history mr-2'></i>
-                    Historial
-                  </a>
-
-                  <div class="border-t border-gray-200 my-1"></div>
-
-                  <form method="POST" action="{% url 'auth:logout' %}">
-                    {% csrf_token %}
-                    <button 
-                      type="submit"
-                      class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-                    >
-                      <i class='bx bx-log-out mr-2'></i>
-                      Cerrar Sesión
-                    </button>
-                  </form>
+            <!-- User Dropdown -->
+            <div class="relative" x-data="{ open: false }">
+              <button 
+                @click="open = !open"
+                @click.away="open = false"
+                class="flex items-center gap-2 text-black hover:text-gray-700 transition focus:outline-none"
+              >
+                <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                  <i class='bx bx-user text-yellow-400 text-lg'></i>
                 </div>
-              </div>
-            {% else %}
-              <a href="{% url 'auth:login' %}" class="text-black font-semibold hover:text-gray-700 transition hidden sm:block">
-                Iniciar Sesión
-              </a>
-            {% endif %}
+                <span class="font-semibold hidden sm:block">
+                  {{ user.profile.full_name|default:user.email|truncatewords:2 }}
+                </span>
+                <i class='bx bx-chevron-down text-lg'></i>
+              </button>
 
-            <!-- Mobile menu button -->
-            <button class="md:hidden text-black">
-              <i class="bx bx-menu text-2xl"></i>
-            </button>
+              <!-- Dropdown Menu -->
+              <div 
+                x-show="open"
+                x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="transform opacity-0 scale-95"
+                x-transition:enter-end="transform opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="transform opacity-100 scale-100"
+                x-transition:leave-end="transform opacity-0 scale-95"
+                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200"
+                style="display: none;"
+              >
+                <!-- User Info -->
+                <div class="px-4 py-3 border-b border-gray-200">
+                  <p class="text-sm font-medium text-gray-900 truncate">
+                    {{ user.profile.full_name|default:"Usuario" }}
+                  </p>
+                  <p class="text-xs text-gray-500 truncate">
+                    {{ user.email }}
+                  </p>
+                </div>
+
+                <!-- Menu Items -->
+                <a 
+                  href="{% url 'auth:profile' %}" 
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                >
+                  <i class='bx bx-user mr-2'></i>
+                  Mi Perfil
+                </a>
+                
+                <a 
+                  href="#" 
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                >
+                  <i class='bx bx-history mr-2'></i>
+                  Historial
+                </a>
+
+                <div class="border-t border-gray-200 my-1"></div>
+
+                <form method="POST" action="{% url 'auth:logout' %}">
+                  {% csrf_token %}
+                  <button 
+                    type="submit"
+                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                  >
+                    <i class='bx bx-log-out mr-2'></i>
+                    Cerrar Sesión
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% else %}
+            <a href="{% url 'auth:login' %}" class="text-black font-semibold hover:text-gray-700 transition hidden sm:block">
+              Iniciar Sesión
+            </a>
+          {% endif %}
+
+          <!-- Mobile menu button -->
+          <button class="md:hidden text-black">
+            <i class="bx bx-menu text-2xl"></i>
+          </button>
           </div>
         </div>
       </div>
@@ -133,13 +148,106 @@
       </div>
     {% endif %}
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="">
-      <!-- Aquí va el contenido de tus páginas -->
+    <!-- LAYOUT CON SIDEBAR -->
+    <div class="flex flex-1">
+      <!-- SIDEBAR DASHBOARD (Solo para Administradores) -->
+      {% if user.is_authenticated and user.groups.all.0.name == 'Administrador' %}
+      <aside 
+        x-show="sidebarOpen"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="-translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="-translate-x-full"
+        class="w-64 bg-gray-800 text-white shadow-lg sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto"
+      >
+        <div class="p-6">
+          <!-- Dashboard Header -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-bold text-yellow-400 mb-2 italic">Dashboard</h2>
+            <p class="text-gray-400 text-sm">Panel Administrativo</p>
+          </div>
+
+          <!-- Navigation Links -->
+          <nav class="space-y-2">
+  <!-- Cortes de Cabello -->
+  <a 
+    href="{% url 'recomendations:haircuts_list' %}" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
+  >
+    <i class='bx bx-cut text-yellow-400 text-xl group-hover:scale-110 transition'></i>
+    <span class="font-semibold">Cortes de Cabello</span>
+  </a>
+
+  <!-- Estilos de Barba -->
+  <a 
+    href="{% url 'recomendations:beard_styles_list' %}" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
+  >
+    <i class='bx bx-male text-yellow-400 text-xl group-hover:scale-110 transition'></i>
+    <span class="font-semibold">Estilos de Barba</span>
+  </a>
+
+  <!-- Estilos de Corte (HaircutStyles) -->
+  <a 
+    href="{% url 'recomendations:recommendations_list' %}" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
+  >
+    <i class='bx bx-star text-yellow-400 text-xl group-hover:scale-110 transition'></i>
+    <span class="font-semibold">Recomendaciones</span>
+  </a>
+
+  <!-- Usuarios -->
+  <a 
+    href="{% url 'auth:profiles_list' %}" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
+  >
+    <i class='bx bx-user-circle text-yellow-400 text-xl group-hover:scale-110 transition'></i>
+    <span class="font-semibold">Usuarios</span>
+  </a>
+
+  <!-- Divider -->
+  <div class="border-t border-gray-700 my-4"></div>
+
+  <!-- Additional Admin Options -->
+  <a 
+    href="{% url 'reports:informe' %}" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
+  >
+    <i class='bx bx-bar-chart text-yellow-400 text-xl group-hover:scale-110 transition'></i>
+    <span class="font-semibold">Estadísticas</span>
+  </a>
+
+  <a 
+    href="#" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
+  >
+    <i class='bx bx-cog text-yellow-400 text-xl group-hover:scale-110 transition'></i>
+    <span class="font-semibold">Configuración</span>
+  </a>
+</nav>
+
+          <!-- Admin Badge -->
+          <div class="mt-8 p-4 bg-yellow-400 bg-opacity-10 rounded-lg border border-yellow-400">
+            <div class="flex items-center space-x-2">
+              <i class='bx bx-shield-quarter text-yellow-400 text-2xl'></i>
+              <div>
+                <p class="text-xs text-gray-400">Rol actual</p>
+                <p class="text-sm font-bold text-black-400">Administrador</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      {% endif %}
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <main class="flex-1 p-6">
         {% block content %}
-        
         {% endblock %}
-    </main>
+      </main>
+    </div>
 
     <!-- FOOTER -->
     <footer class="bg-gray-700 text-gray-200 mt-12">
@@ -227,7 +335,7 @@
       </div>
     </footer>
 
-    <!-- Alpine.js for dropdown functionality -->
+    <!-- Alpine.js for functionality -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   </body>

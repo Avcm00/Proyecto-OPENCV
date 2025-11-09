@@ -26,4 +26,5 @@ urlpatterns = [
     path('facial_analysis/', include('apps.facial_analysis.adapters.web.urls')),
     path('auth/', include('apps.auth_app.adapters.web.urls')),
     path('recomendations/', include('apps.recomendations.adapters.web.urls')),
+    path('reports/', include('apps.reports.adapters.web.urls')),
 ]

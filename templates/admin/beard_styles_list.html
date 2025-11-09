@@ -1,4 +1,4 @@
-<!-- templates/recommendations/haircut_styles_list.html -->
+<!-- templates/recomendations/beard_styles_list.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -9,11 +9,11 @@
     <div class="mb-8">
       <div class="flex justify-between items-center">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Gestión de Estilos de Corte</h1>
+          <h1 class="text-3xl font-bold text-gray-900">Gestión de Estilos de Barba</h1>
           <p class="text-gray-600 mt-2">{{ total_count }} estilos en total</p>
         </div>
-        <a href="{% url 'recommendations:haircut_style_create' %}" 
-           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition flex items-center">
+        <a href="{% url 'recomendations:beard_style_create' %}" 
+           class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg transition flex items-center shadow-md">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Filtros y Búsqueda -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-gray-800">
       <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Búsqueda -->
         <div class="md:col-span-2">
@@ -32,26 +32,13 @@
                  name="q" 
                  value="{{ query }}" 
                  placeholder="Nombre o descripción..."
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
-
-        <!-- Filtro Género -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Género</label>
-          <select name="gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option value="">Todos</option>
-            {% for gender in genders %}
-            <option value="{{ gender }}" {% if gender_filter == gender %}selected{% endif %}>
-              {{ gender|title }}
-            </option>
-            {% endfor %}
-          </select>
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
         </div>
 
         <!-- Filtro Forma Rostro -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Rostro</label>
-          <select name="shape" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <select name="shape" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800">
             <option value="">Todas</option>
             {% for shape in face_shapes %}
             <option value="{{ shape }}" {% if shape_filter == shape %}selected{% endif %}>
@@ -61,12 +48,25 @@
           </select>
         </div>
 
+        <!-- Filtro Mantenimiento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Mantenimiento</label>
+          <select name="maintenance" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800">
+            <option value="">Todos</option>
+            {% for level in maintenance_levels %}
+            <option value="{{ level }}" {% if maintenance_filter == level %}selected{% endif %}>
+              Nivel {{ level }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
         <!-- Botones -->
         <div class="md:col-span-4 flex gap-2">
-          <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white font-medium py-2 px-6 rounded-lg transition">
+          <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-6 rounded-lg transition">
             Aplicar Filtros
           </button>
-          <a href="{% url 'recommendations:haircut_styles_list' %}" 
+          <a href="{% url 'recomendations:beard_styles_list' %}" 
              class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition">
             Limpiar
           </a>
@@ -77,23 +77,21 @@
     <!-- Grid de Estilos -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       {% for style in page_obj %}
-      <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition group">
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition group border-t-4 border-gray-800">
         <!-- Imagen -->
         <div class="relative h-48 bg-gray-200 overflow-hidden">
-          {% if style.get_image_url %}
-          <img src="{{ style.get_image_url }}" 
+          {% if style.image_url %}
+          <img src="{{ style.image_url }}" 
                alt="{{ style.name }}"
-               class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+               class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
           {% else %}
-          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
+          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
+            <i class='bx bx-male text-white text-6xl'></i>
           </div>
           {% endif %}
           
           <!-- Badge de popularidad -->
-          <div class="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+          <div class="absolute top-2 right-2 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
             ⭐ {{ style.popularity_score }}/10
           </div>
         </div>
@@ -105,14 +103,11 @@
           
           <!-- Tags -->
           <div class="flex flex-wrap gap-1 mb-3">
-            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-              {{ style.suitable_for_gender }}
+            <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">
+              Mantenimiento: {{ style.maintenance_level }}/5
             </span>
-            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-              {{ style.hair_length_required }}
-            </span>
-            <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
-              Nivel {{ style.difficulty_level }}/5
+            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium">
+              {{ style.growth_time_weeks }} semanas
             </span>
           </div>
 
@@ -123,15 +118,15 @@
 
           <!-- Acciones -->
           <div class="flex gap-2">
-            <a href="{% url 'recommendations:haircut_style_detail' style.id %}" 
+            <a href="{% url 'recomendations:beard_style_detail' style.id %}" 
                class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded text-sm font-medium transition">
               Ver
             </a>
-            <a href="{% url 'recommendations:haircut_style_edit' style.id %}" 
-               class="flex-1 text-center bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded text-sm font-medium transition">
+            <a href="{% url 'recomendations:beard_style_edit' style.id %}" 
+               class="flex-1 text-center bg-gray-800 hover:bg-gray-900 text-white py-2 rounded text-sm font-medium transition">
               Editar
             </a>
-            <form method="POST" action="{% url 'recommendations:haircut_style_delete' style.id %}" 
+            <form method="POST" action="{% url 'recomendations:beard_style_delete' style.id %}" 
                   onsubmit="return confirm('¿Eliminar este estilo?');" class="flex-1">
               {% csrf_token %}
               <button type="submit" 
@@ -144,9 +139,7 @@
       </div>
       {% empty %}
       <div class="col-span-full text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
+        <i class='bx bx-male text-gray-400 text-6xl mb-4'></i>
         <h3 class="mt-2 text-sm font-medium text-gray-900">No se encontraron estilos</h3>
         <p class="mt-1 text-sm text-gray-500">Intenta con otros filtros o crea un nuevo estilo.</p>
       </div>
@@ -158,19 +151,19 @@
     <div class="flex justify-center">
       <nav class="inline-flex rounded-md shadow-sm -space-x-px">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}" 
-           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}{% if maintenance_filter %}&maintenance={{ maintenance_filter }}{% endif %}" 
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-l-md">
           Anterior
         </a>
         {% endif %}
         
-        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-gray-100 text-sm font-medium text-gray-700">
           Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
         </span>
         
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}" 
-           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}{% if maintenance_filter %}&maintenance={{ maintenance_filter }}{% endif %}" 
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-r-md">
           Siguiente
         </a>
         {% endif %}

@@ -1,0 +1,91 @@
+<!-- templates/profiles/profile_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Detalle del Perfil</h1>
+          <p class="text-gray-600 mt-2">Perfil de {{ profile.user.email }}</p>
+        </div>
+        <a href="{% url 'auth:profiles_list' %}" 
+           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition">
+          ← Volver a la Lista
+        </a>
+      </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-400">
+      
+      <!-- Información del Usuario -->
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Información del Usuario</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Email:</p>
+            <p class="text-gray-900">{{ profile.user.email }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Nombre Completo:</p>
+            <p class="text-gray-900">{{ profile.full_name|default:"No especificado" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Género:</p>
+            <p class="text-gray-900">{{ profile.get_gender_display|default:"No especificado" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Edad:</p>
+            <p class="text-gray-900">{{ profile.age|default:"No especificada" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Altura:</p>
+            <p class="text-gray-900">{{ profile.height|default:"No especificada" }} m</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Forma de Cara:</p>
+            <p class="text-gray-900">{{ profile.get_face_shape_display|default:"No especificada" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Perfil Completo:</p>
+            <p class="text-gray-900 {% if profile.is_complete %}text-green-600{% else %}text-red-600{% endif %}">
+              {% if profile.is_complete %}Sí{% else %}No{% endif %}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Fecha de Creación:</p>
+            <p class="text-gray-900">{{ profile.created_at|date:"d/m/Y H:i" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Última Actualización:</p>
+            <p class="text-gray-900">{{ profile.updated_at|date:"d/m/Y H:i" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferencias -->
+      {% if profile.preferences %}
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Preferencias</h2>
+        <pre class="bg-gray-100 p-4 rounded text-sm text-gray-800">{{ profile.preferences|json_script:"preferences" }}</pre>
+        <script>
+          // Formatear JSON para mejor visualización
+          const preferences = JSON.parse(document.getElementById('preferences').textContent);
+          document.getElementById('preferences').textContent = JSON.stringify(preferences, null, 2);
+        </script>
+      </div>
+      {% else %}
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Preferencias</h2>
+        <p class="text-gray-600">No hay preferencias especificadas.</p>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

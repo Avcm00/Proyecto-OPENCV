@@ -1,0 +1,140 @@
+<!-- templates/recommendations/recommendation_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Detalle de Recomendación</h1>
+          <p class="text-gray-600 mt-2">Recomendación para {{ recommendation.user.email }}</p>
+        </div>
+        <a href="{% url 'recomendations:recommendations_list' %}" 
+           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition">
+          ← Volver a la Lista
+        </a>
+      </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-400">
+      
+      <!-- Información del Usuario -->
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Información del Usuario</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Email:</p>
+            <p class="text-gray-900">{{ recommendation.user.email }}</p>
+          </div>
+          {% if recommendation.user.profile %}
+          <div>
+            <p class="text-sm font-medium text-gray-700">Nombre Completo:</p>
+            <p class="text-gray-900">{{ recommendation.user.profile.full_name|default:"No especificado" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Género:</p>
+            <p class="text-gray-900">{{ recommendation.user.profile.get_gender_display|default:"No especificado" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Edad:</p>
+            <p class="text-gray-900">{{ recommendation.user.profile.age|default:"No especificada" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Altura:</p>
+            <p class="text-gray-900">{{ recommendation.user.profile.height|default:"No especificada" }} m</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Forma de Cara (Perfil):</p>
+            <p class="text-gray-900">{{ recommendation.user.profile.get_face_shape_display|default:"No especificada" }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Detalles de la Recomendación -->
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Detalles de la Recomendación</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Género Recomendado:</p>
+            <p class="text-gray-900">{{ recommendation.gender|title }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Forma de Cara:</p>
+            <p class="text-gray-900">{{ recommendation.face_shape|title }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Longitud de Cabello:</p>
+            <p class="text-gray-900">{{ recommendation.hair_length|title }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Puntuación de Confianza:</p>
+            <p class="text-gray-900">{{ recommendation.confidence_score|floatformat:2 }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Fecha de Creación:</p>
+            <p class="text-gray-900">{{ recommendation.created_at|date:"d/m/Y H:i" }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700">Última Actualización:</p>
+            <p class="text-gray-900">{{ recommendation.updated_at|date:"d/m/Y H:i" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilos Recomendados -->
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Estilos Recomendados</h2>
+        
+        {% if recommendation.haircut_styles_ids %}
+        <div class="mb-4">
+          <p class="text-sm font-medium text-gray-700 mb-2">Cortes de Cabello (IDs):</p>
+          <div class="flex flex-wrap gap-2">
+            {% for style_id in recommendation.haircut_styles_ids %}
+            <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded font-medium">
+              {{ style_id }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <p class="text-gray-600">No hay cortes de cabello recomendados.</p>
+        {% endif %}
+        
+        {% if recommendation.beard_styles_ids %}
+        <div>
+          <p class="text-sm font-medium text-gray-700 mb-2">Estilos de Barba (IDs):</p>
+          <div class="flex flex-wrap gap-2">
+            {% for style_id in recommendation.beard_styles_ids %}
+            <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded font-medium">
+              {{ style_id }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <p class="text-gray-600">No hay estilos de barba recomendados.</p>
+        {% endif %}
+      </div>
+
+      <!-- Preferencias del Perfil (si existen) -->
+      {% if recommendation.user.profile and recommendation.user.profile.preferences %}
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Preferencias del Usuario</h2>
+        <pre class="bg-gray-100 p-4 rounded text-sm text-gray-800">{{ recommendation.user.profile.preferences|json_script:"preferences" }}</pre>
+        <script>
+          // Opcional: Formatear JSON para mejor visualización
+          const preferences = JSON.parse(document.getElementById('preferences').textContent);
+          document.getElementById('preferences').textContent = JSON.stringify(preferences, null, 2);
+        </script>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

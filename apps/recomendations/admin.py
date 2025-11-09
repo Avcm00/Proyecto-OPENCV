@@ -135,14 +135,13 @@ class BeardStyleAdmin(admin.ModelAdmin):
         self.message_user(request, f'{count} estilos desactivados')
     deactivate_styles.short_description = "Desactivar estilos seleccionados"
 
-
 @admin.register(RecommendationModel)
 class RecommendationAdmin(admin.ModelAdmin):
     """Admin para recomendaciones generadas"""
     
     list_display = [
         'id',
-        'user_id',
+        'user_id',  # ← corregido
         'face_shape',
         'gender',
         'confidence_score',
@@ -156,13 +155,13 @@ class RecommendationAdmin(admin.ModelAdmin):
         'created_at'
     ]
     
-    search_fields = ['user_id']
+    search_fields = ['user_id']  # ← corregido
     
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
         ('Usuario', {
-            'fields': ('user_id',)
+            'fields': ('user_id',)  # ← corregido
         }),
         ('Análisis', {
             'fields': (

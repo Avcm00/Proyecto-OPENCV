@@ -6,11 +6,18 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 
+from apps.auth_app.adapters.persistence.models import UserModel
+
 
 
 # Para versiones de Django < 3.1 sin PostgreSQL
 class RecommendationModel(models.Model):
-    user_id = models.UUIDField()
+    user = models.ForeignKey(
+        UserModel,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        related_name='recommendations'
+        )
     face_shape = models.CharField(max_length=50)
     gender = models.CharField(max_length=20)
     hair_length = models.CharField(max_length=20)
@@ -135,4 +142,3 @@ class BeardStyleModel(models.Model):
 
 # Si estás usando PostgreSQL sin soporte para JSONField nativo en versiones antiguas,
 # usa esto en su lugar:
-

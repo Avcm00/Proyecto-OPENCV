@@ -8,19 +8,19 @@ from . import views
 app_name = 'recomendations'
 
 urlpatterns = [
-    # Endpoint para generar recomendaciones
-    path('generate/', views.generate_recommendations, name='generate'),
     
-    # Endpoint para listar estilos disponibles
-    path('styles/', views.list_styles, name='list_styles'),
-    path('styles/haircuts/', views.list_haircut_styles, name='list_haircuts'),
-    path('styles/beards/', views.list_beard_styles, name='list_beards'),
+    path('haircut-styles/', views.haircuts_list, name='haircuts_list'),
+    path('haircut-styles/create/', views.haircut_create, name='haircut_create'),
+    path('haircut-styles/<int:pk>/', views.haircut_detail, name='haircut_detail'),
+    path('haircut-styles/<int:pk>/edit/', views.haircut_edit, name='haircut_edit'),
+    path('haircut-styles/<int:pk>/delete/', views.haircut_delete, name='haircut_delete'),
     
-    # Endpoint para obtener detalles de un estilo específico
-    path('styles/haircuts/<int:style_id>/', views.get_haircut_detail, name='haircut_detail'),
-    path('styles/beards/<int:style_id>/', views.get_beard_detail, name='beard_detail'),
-    
-    # Endpoint para historial de recomendaciones del usuario
-    path('history/', views.get_user_history, name='user_history'),
-    path('history/<int:recommendation_id>/', views.get_recommendation_detail, name='recommendation_detail'),
+    path('list/', views.recommendations_list, name='recommendations_list'),
+    path('recommendations/<int:pk>/', views.recommendation_detail, name='recommendation_detail'),
+
+    path('beard-styles/', views.beard_styles_list, name='beard_styles_list'),
+    path('beard-styles/create/', views.beard_style_create, name='beard_style_create'),
+    path('beard-styles/<int:pk>/', views.beard_style_detail, name='beard_style_detail'),
+    path('beard-styles/<int:pk>/edit/', views.beard_style_edit, name='beard_style_edit'),
+    path('beard-styles/<int:pk>/delete/', views.beard_style_delete, name='beard_style_delete'),
 ]
