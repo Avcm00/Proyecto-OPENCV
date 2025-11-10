@@ -49,16 +49,7 @@ class RuleBasedRecommendationEngine:
                 'Las barbas redondeadas suavizan la mandíbula fuerte'
             ]
         },
-        FaceShape.RECTANGULAR: {
-            'haircut_multiplier': 1.0,
-            'beard_styles': ['completa', 'media', 'redondeada'],
-            'tips': [
-                'Busca estilos que den amplitud a los lados',
-                'Evita cortes que alarguen aún más el rostro',
-                'Los flequillos pueden acortar visualmente la frente',
-                'Las barbas dan balance al rostro alargado'
-            ]
-        },
+        
         FaceShape.CORAZON: {
             'haircut_multiplier': 1.0,
             'beard_styles': ['perilla', 'candado', 'corta'],

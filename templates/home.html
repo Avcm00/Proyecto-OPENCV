@@ -25,9 +25,9 @@
         <p class="text-gray-600 text-lg mb-8 leading-relaxed">
           Conoce la forma de tu cara y encuentra el estilo que mejor refleja tu personalidad.
         </p>
-        <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded transition duration-300">
+        <a href="{% url 'analysis:main' %}" class="text-xl font-bold text-black bg-yellow-400 px-6 py-3 rounded-lg hover:bg-yellow-500 hover:text-gray-800 transition">
           Realizar Análisis
-        </button>
+        </a>
       </div>
       <div class="flex justify-center">
         <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop" alt="Análisis de rostro" class="rounded-lg shadow-lg w-full max-w-sm">
@@ -138,9 +138,11 @@
     <p class="text-black text-lg mb-8 max-w-2xl mx-auto">
       Descubre el corte perfecto para ti con nuestro análisis personalizado de tipo de rostro.
     </p>
-    <button class="bg-black hover:bg-gray-800 text-yellow-400 font-bold py-3 px-10 rounded-lg transition duration-300 text-lg">
-      Comenzar Análisis Gratuito
-    </button>
+    <a href="{% url 'analysis:main' %}"
+    class="bg-black text-yellow-400 text-xl font-bold px-6 py-3 rounded-lg hover:bg-gray-900 hover:text-yellow-300 transition">
+    Comenzar Análisis Gratuito
+    </a>
+
   </section>
 
 {% endblock %}

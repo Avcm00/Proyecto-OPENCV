@@ -39,7 +39,6 @@ FACE_SHAPE_MAPPING = {
     'ovalada': FaceShape.OVAL,
     'redonda': FaceShape.REDONDO,
     'cuadrada': FaceShape.CUADRADO,
-    'rectangular': FaceShape.RECTANGULAR,
     'corazón': FaceShape.CORAZON,
     'corazon': FaceShape.CORAZON,
     'diamante': FaceShape.DIAMANTE,

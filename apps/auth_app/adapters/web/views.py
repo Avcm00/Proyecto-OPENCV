@@ -115,6 +115,10 @@ class ProfileView(LoginRequiredMixin, View):
         profile, created = ProfileModel.objects.get_or_create(user=request.user)
         form = ProfileForm(request.POST, instance=profile)
         
+        # Excluir face_shape del formulario para evitar edición manual
+        if 'face_shape' in form.fields:
+            del form.fields['face_shape']  # O usa form.fields['face_shape'].disabled = True
+        
         if form.is_valid():
             form.save()
             messages.success(request, '¡Perfil actualizado exitosamente!')

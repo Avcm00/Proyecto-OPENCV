@@ -14,7 +14,6 @@ class FaceShape(Enum):
     OVAL = "oval"
     REDONDO = "redondo"
     CUADRADO = "cuadrado"
-    RECTANGULAR = "rectangular"
     CORAZON = "corazon"
     DIAMANTE = "diamante"
     TRIANGULAR = "triangular"

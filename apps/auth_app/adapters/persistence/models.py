@@ -48,6 +48,11 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+from django.db import models
+import uuid
+
+# Asumiendo que UserModel está definido en otro lugar
+
 class ProfileModel(models.Model):
     """Modelo Django para Perfil de Usuario"""
     
@@ -60,11 +65,11 @@ class ProfileModel(models.Model):
     
     FACE_SHAPE_CHOICES = [
         ('oval', 'Ovalado'),
-        ('round', 'Redondo'),
-        ('square', 'Cuadrado'),
-        ('heart', 'Corazón'),
-        ('diamond', 'Diamante'),
-        ('oblong', 'Oblongo'),
+        ('redondo', 'Redondo'),
+        ('cuadrado', 'Cuadrado'),
+        ('corazon', 'Corazon'),
+        ('diamante', 'Diamante'),
+        ('triangular', 'Triangular'),
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

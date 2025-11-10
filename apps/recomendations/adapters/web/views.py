@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from apps.auth_app.adapters.persistence.models import ProfileModel
 from apps.recomendations.models import HaircutStyleModel, BeardStyleModel, RecommendationModel
 from apps.recomendations.adapters.web.forms import HaircutStyleForm, BeardStyleForm
 from apps.recomendations.core.use_cases import (
@@ -127,7 +128,17 @@ def generate_admin(request):
         
         save_use_case = SaveRecommendationUseCase(recommendation_repository)
         saved_recommendation = save_use_case.execute(recommendation)
-        
+        # Actualizar el perfil del usuario con el face_shape detectado, solo si es el mejor puntaje
+        try:
+            profile = ProfileModel.objects.get(user_id=user_id)
+            # Buscar la recomendación con el mayor confidence_score para este usuario
+            best_recommendation = RecommendationModel.objects.filter(user_id=user_id).order_by('-confidence_score').first()
+            if best_recommendation and best_recommendation.confidence_score >= confidence:
+                profile.face_shape = face_shape.value  # Asignar directamente, ya que ahora coinciden
+                profile.save()
+        except ProfileModel.DoesNotExist:
+            # Si no existe perfil, créalo con el face_shape
+            ProfileModel.objects.create(user_id=user_id, face_shape=face_shape.value)
         # Obtener tips
         tips = recommendation_engine.get_face_shape_tips(face_shape)
         
