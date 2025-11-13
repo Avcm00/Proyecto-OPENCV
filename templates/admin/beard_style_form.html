@@ -1,17 +1,17 @@
-<!-- templates/recomendations/beard_style_form.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    
+
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center gap-4 mb-4">
         <a href="{% url 'recomendations:beard_styles_list' %}" 
            class="text-gray-600 hover:text-gray-900 transition">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
           </svg>
         </a>
         <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
@@ -20,136 +20,128 @@
 
     <!-- Formulario -->
     <div class="bg-white rounded-lg shadow-sm p-8 border-t-4 border-gray-800">
-      <form method="POST" enctype="multipart/form-data" class="space-y-6">
+      <form method="POST" enctype="multipart/form-data" class="space-y-8">
         {% csrf_token %}
-        
+
         <!-- Información Básica -->
-        <div class="border-b border-gray-200 pb-6">
+        <section>
           <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <i class='bx bx-info-circle text-gray-800 text-2xl mr-2'></i>
             Información Básica
           </h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
             <!-- Nombre -->
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del Estilo *
-              </label>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
               {{ form.name }}
-              {% if form.name.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
-              {% endif %}
+              {% for error in form.name.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
             </div>
 
             <!-- Descripción -->
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Descripción *
-              </label>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Descripción *</label>
               {{ form.description }}
-              {% if form.description.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
-              {% endif %}
+              {% for error in form.description.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
             </div>
 
-            <!-- URL de Imagen -->
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                URL de la Imagen *
-              </label>
-              {% if beard_style.image_url %}
-                <img src="{{ beard_style.image_url }}" alt="{{ beard_style.name }}" class="w-32 h-32 object-cover rounded-lg mb-2">
+            <!-- Imagen -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Imagen *</label>
+              {% if form.instance.image %}
+                <img src="{{ form.instance.image.url }}" 
+                     alt="{{ form.instance.name }}" 
+                     class="w-32 h-32 object-cover rounded-lg mb-3 border">
               {% endif %}
-              {{ form.image_url }}
-              {% if form.image_url.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.image_url.errors.0 }}</p>
-              {% endif %}
+              {{ form.image }}
+              {% for error in form.image.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Características -->
-        <div class="border-b border-gray-200 pb-6">
+        <section>
           <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <i class='bx bx-male text-gray-800 text-2xl mr-2'></i>
+            <i class='bx bx-cog text-gray-800 text-2xl mr-2'></i>
             Características
           </h2>
-          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Nivel de Mantenimiento -->
+            <!-- Nivel de Dificultad -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Nivel de Mantenimiento (1-5) *
-              </label>
-              {{ form.maintenance_level }}
-              {% if form.maintenance_level.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.maintenance_level.errors.0 }}</p>
-              {% endif %}
-            </div>
-
-            <!-- Tiempo de Crecimiento -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Tiempo de Crecimiento (semanas) *
-              </label>
-              {{ form.growth_time_weeks }}
-              {% if form.growth_time_weeks.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.growth_time_weeks.errors.0 }}</p>
-              {% endif %}
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nivel de Dificultad *</label>
+              {{ form.difficulty_level }}
+              {% for error in form.difficulty_level.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
             </div>
 
             <!-- Popularidad -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Puntuación de Popularidad (1-10) *
-              </label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Popularidad (1-10)</label>
               {{ form.popularity_score }}
-              {% if form.popularity_score.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.popularity_score.errors.0 }}</p>
-              {% endif %}
+              {% for error in form.popularity_score.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Formas de Rostro -->
-        <div class="border-b border-gray-200 pb-6">
+        <section>
           <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <i class='bx bx-user text-gray-800 text-2xl mr-2'></i>
+            <i class='bx bx-face text-gray-800 text-2xl mr-2'></i>
             Formas de Rostro Compatibles
           </h2>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Formas de Rostro (separadas por coma) *
-            </label>
-            {{ form.suitable_shapes }}
-            <p class="mt-1 text-xs text-gray-500">Ejemplo: Ovalado, Redondo, Cuadrado</p>
-            {% if form.suitable_shapes.errors %}
-              <p class="mt-1 text-sm text-red-600">{{ form.suitable_shapes.errors.0 }}</p>
-            {% endif %}
-          </div>
-        </div>
 
-        <!-- Instrucciones de Cuidado -->
-        <div class="border-b border-gray-200 pb-6">
+          <div id="shape-buttons-container" class="flex flex-wrap gap-2">
+  {% for choice in form.suitable_for_shapes %}
+    <label class="relative">
+      {{ choice.tag }}
+      <div class="shape-button px-4 py-2 rounded-full cursor-pointer transition duration-150 ease-in-out 
+                  {% if choice.data.selected %}bg-green-500 text-white{% else %}bg-blue-500 text-white{% endif %}">
+        {{ choice.choice_label }}
+      </div>
+    </label>
+  {% endfor %}
+</div>
+
+          {% if form.suitable_for_shapes.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.suitable_for_shapes.errors.0 }}</p>
+          {% endif %}
+        </section>
+
+        <!-- Beneficios -->
+        <section>
           <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <i class='bx bx-clipboard text-gray-800 text-2xl mr-2'></i>
-            Instrucciones de Cuidado
+            <i class='bx bx-like text-gray-800 text-2xl mr-2'></i>
+            Beneficios
           </h2>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Instrucciones de Cuidado y Mantenimiento
-            </label>
-            {{ form.care_instructions }}
-            {% if form.care_instructions.errors %}
-              <p class="mt-1 text-sm text-red-600">{{ form.care_instructions.errors.0 }}</p>
-            {% endif %}
-          </div>
-        </div>
+          {{ form.benefits_text }}
+        </section>
 
-        <!-- Botones de Acción -->
+        <!-- Etiquetas -->
+        <section>
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <i class='bx bx-purchase-tag text-gray-800 text-2xl mr-2'></i>
+            Etiquetas
+          </h2>
+          {{ form.tags_text }}
+        </section>
+
+        <!-- Estado -->
+        <section>
+          <label class="inline-flex items-center">
+            {{ form.is_active }}
+            <span class="ml-2 text-sm text-gray-700">Activo</span>
+          </label>
+        </section>
+
+        <!-- Botones -->
         <div class="flex gap-4 pt-4">
           <button type="submit" 
                   class="flex-1 bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
@@ -166,6 +158,7 @@
   </div>
 </div>
 
+<!-- Estilos -->
 <style>
   input[type="text"], input[type="number"], textarea, select {
     @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent;
@@ -174,7 +167,74 @@
     @apply min-h-[120px];
   }
   input[type="file"] {
-    @apply text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200;
+    @apply text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 
+           file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200;
   }
 </style>
+<style>
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+</style>
+<!-- Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const buttonsContainer = document.getElementById('shape-buttons-container');
+  const shapeButtons = buttonsContainer.querySelectorAll('.shape-button');
+
+  shapeButtons.forEach(button => {
+    const checkbox = button.querySelector('input[type="checkbox"]');
+
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      checkbox.checked = !checkbox.checked;
+
+      if (checkbox.checked) {
+        button.classList.remove('bg-blue-500');
+        button.classList.add('bg-green-500');
+      } else {
+        button.classList.remove('bg-green-500');
+        button.classList.add('bg-blue-500');
+      }
+
+      checkbox.dispatchEvent(new Event('change'));
+    });
+
+    if (checkbox.checked) {
+      button.classList.remove('bg-blue-500');
+      button.classList.add('bg-green-500');
+    }
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#shape-buttons-container label').forEach(label => {
+    const checkbox = label.querySelector('input[type="checkbox"]');
+    const button = label.querySelector('.shape-button');
+
+    function updateColor() {
+      if (checkbox.checked) {
+        button.classList.remove('bg-blue-500');
+        button.classList.add('bg-green-500');
+      } else {
+        button.classList.remove('bg-green-500');
+        button.classList.add('bg-blue-500');
+      }
+    }
+
+    button.addEventListener('click', e => {
+      e.preventDefault();
+      checkbox.checked = !checkbox.checked;
+      updateColor();
+    });
+
+    updateColor(); // estado inicial
+  });
+});
+</script>
+
+
 {% endblock %}

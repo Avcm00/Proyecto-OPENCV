@@ -1,0 +1,542 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Análisis - {{ history_entry.face_shape }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    
+    <!-- Botón de regreso -->
+    <div class="mb-6">
+        <a href="{% url 'feedback:history_list' %}" 
+           class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-semibold transition">
+            ← Volver al Historial
+        </a>
+    </div>
+
+    <!-- Header del Análisis -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8 mb-8 text-white">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">Análisis #{{ history_entry.id }}</h1>
+                <p class="text-lg opacity-90">{{ history_entry.get_formatted_date }}</p>
+            </div>
+            <div class="bg-white/20 backdrop-blur-lg rounded-xl px-8 py-4 text-center">
+                <div class="text-5xl font-bold">{{ history_entry.face_shape }}</div>
+                <div class="text-sm opacity-90 mt-2">Forma Detectada</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Columna Principal (2/3) -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Resultados del Análisis -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span>📊</span> Resultados del Análisis
+                </h2>
+
+                {% if analysis_data %}
+                    <!-- Forma Principal -->
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-lg font-semibold text-gray-700">Forma Principal</span>
+                            <span class="text-3xl font-bold text-indigo-600">{{ analysis_data.primary_shape }}</span>
+                        </div>
+                        
+                        <!-- Barra de confianza -->
+                        <div class="relative pt-1">
+                            <div class="flex mb-2 items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-700">Nivel de Confianza</span>
+                                <span class="text-sm font-semibold text-indigo-600">{{ analysis_data.primary_confidence }}%</span>
+                            </div>
+                            <div class="overflow-hidden h-4 text-xs flex rounded-full bg-gray-200">
+                                <div style="width:{{ analysis_data.primary_confidence }}%" 
+                                     class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Todas las Formas Detectadas -->
+                    {% if analysis_data.face_shape_results %}
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Todas las Formas Detectadas</h3>
+                        <div class="space-y-3">
+                            {% for shape_result in analysis_data.face_shape_results %}
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                                <span class="font-medium text-gray-700">{{ shape_result.0 }}</span>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-48 bg-gray-200 rounded-full h-3">
+                                        <div class="bg-gradient-to-r from-indigo-400 to-purple-500 h-3 rounded-full transition-all duration-500" 
+                                             style="width: {{ shape_result.1 }}%"></div>
+                                    </div>
+                                    <span class="text-sm font-semibold text-indigo-600 w-16 text-right">{{ shape_result.1 }}%</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Mediciones Faciales -->
+                    {% if analysis_data.measurements %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Mediciones Faciales</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-blue-50 rounded-xl">
+                                <div class="text-sm text-blue-600 mb-1">Altura del Rostro</div>
+                                <div class="text-2xl font-bold text-blue-700">{{ analysis_data.measurements.face_height }} cm</div>
+                            </div>
+                            <div class="p-4 bg-green-50 rounded-xl">
+                                <div class="text-sm text-green-600 mb-1">Ancho del Rostro</div>
+                                <div class="text-2xl font-bold text-green-700">{{ analysis_data.measurements.face_width }} cm</div>
+                            </div>
+                            <div class="p-4 bg-purple-50 rounded-xl col-span-2">
+                                <div class="text-sm text-purple-600 mb-1">Ratio (Altura/Ancho)</div>
+                                <div class="text-2xl font-bold text-purple-700">{{ analysis_data.measurements.ratio }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-gray-600">No hay datos detallados disponibles para este análisis.</p>
+                {% endif %}
+            </div>
+
+            <!-- Recomendaciones -->
+            {% if recommendations %}
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span>✂️</span> Recomendaciones
+                </h2>
+
+                <!-- Cortes de Cabello -->
+                {% if recommendations.cortes %}
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Cortes de Cabello</h3>
+                    <div class="space-y-4">
+                        {% for corte in recommendations.cortes %}
+                        <div class="p-6 border-2 border-gray-200 rounded-xl hover:border-indigo-400 hover:shadow-lg transition duration-300">
+                            <h4 class="text-lg font-bold text-indigo-600 mb-2">{{ corte.nombre }}</h4>
+                            <p class="text-gray-700">{{ corte.descripcion }}</p>
+                            {% if corte.caracteristicas %}
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                {% for caracteristica in corte.caracteristicas %}
+                                <span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm">
+                                    {{ caracteristica }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Estilos de Barba -->
+                {% if recommendations.barbas %}
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Estilos de Barba</h3>
+                    <div class="space-y-4">
+                        {% for barba in recommendations.barbas %}
+                        <div class="p-6 border-2 border-gray-200 rounded-xl hover:border-purple-400 hover:shadow-lg transition duration-300">
+                            <h4 class="text-lg font-bold text-purple-600 mb-2">{{ barba.nombre }}</h4>
+                            <p class="text-gray-700">{{ barba.descripcion }}</p>
+                            {% if barba.caracteristicas %}
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                {% for caracteristica in barba.caracteristicas %}
+                                <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
+                                    {{ caracteristica }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Sidebar (1/3) -->
+        <div class="space-y-8">
+            
+            <!-- Card de Información -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Información</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <span class="text-2xl">📊</span>
+                        <div>
+                            <div class="text-xs text-blue-600 font-medium">Confianza</div>
+                            <div class="text-lg font-bold text-blue-700">{{ history_entry.get_confidence_percentage }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <span class="text-2xl">✂️</span>
+                        <div>
+                            <div class="text-xs text-green-600 font-medium">Recomendaciones</div>
+                            <div class="text-lg font-bold text-green-700">{{ history_entry.recommendations_count }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                        <span class="text-2xl">📅</span>
+                        <div>
+                            <div class="text-xs text-purple-600 font-medium">Fecha</div>
+                            <div class="text-sm font-bold text-purple-700">{{ history_entry.get_formatted_date }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback -->
+            {% if feedback %}
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Tu Feedback</h3>
+                
+                <!-- Rating con Estrellas -->
+                <div class="text-center mb-4">
+                    <div class="text-4xl mb-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= feedback.rating %}
+                                <span class="text-yellow-400">★</span>
+                            {% else %}
+                                <span class="text-gray-300">★</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">{{ feedback.rating }} de 5 estrellas</div>
+                    
+                    <!-- Like/Dislike -->
+                    {% if feedback.liked is not None %}
+                    <div class="mt-3">
+                        {% if feedback.liked %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                                👍 Te gustó
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                                👎 No te gustó
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Comentario -->
+                {% if feedback.comment %}
+                <div class="mt-4 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+                    <div class="text-xs text-gray-500 font-medium mb-2">📝 Tu comentario:</div>
+                    <p class="text-gray-700 text-sm">{{ feedback.comment }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Fecha del feedback -->
+                <div class="mt-4 text-xs text-gray-500 text-center">
+                    Calificado el {{ feedback.get_formatted_date }}
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-yellow-200">
+                <h3 class="text-xl font-bold text-gray-800 mb-3">¿Qué te parecieron las recomendaciones?</h3>
+                <p class="text-sm text-gray-600 mb-4">Tu opinión nos ayuda a mejorar</p>
+                <button onclick="openFeedbackModal({{ history_entry.id }})" 
+                        class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold rounded-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                    ⭐ Calificar Ahora
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- Acciones -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Acciones</h3>
+                
+                <div class="space-y-3">
+                    {% if history_entry.pdf_path %}
+                    <a href="/media/{{ history_entry.pdf_path }}" target="_blank"
+                       class="block w-full bg-gradient-to-r from-pink-500 to-red-500 text-white text-center font-semibold rounded-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                        📄 Descargar PDF
+                    </a>
+                    {% endif %}
+
+                    <a href="/analysis/upload/"
+                       class="block w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center font-semibold rounded-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                        🔄 Nuevo Análisis
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ================================= -->
+<!-- MODAL DE FEEDBACK (VENTANA EMERGENTE) -->
+<!-- ================================= -->
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300" id="modalContent">
+        
+        <!-- Header del Modal -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold flex items-center gap-2">
+                    <span>⭐</span> Califica este Análisis
+                </h3>
+                <button onclick="closeFeedbackModal()" class="text-white hover:text-gray-200 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm opacity-90 mt-2">Tu opinión nos ayuda a mejorar las recomendaciones</p>
+        </div>
+
+        <!-- Formulario del Modal -->
+        <form id="feedbackForm" class="p-6 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" id="analysis_id" name="analysis_id" value="">
+
+            <!-- Rating con Estrellas -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                    ¿Qué tan útiles fueron las recomendaciones?
+                </label>
+                <div class="flex justify-center gap-2 mb-3" id="starsContainer">
+                    <button type="button" class="star-btn text-6xl text-gray-300 hover:text-yellow-400 transition-all duration-200 transform hover:scale-110" data-rating="1">★</button>
+                    <button type="button" class="star-btn text-6xl text-gray-300 hover:text-yellow-400 transition-all duration-200 transform hover:scale-110" data-rating="2">★</button>
+                    <button type="button" class="star-btn text-6xl text-gray-300 hover:text-yellow-400 transition-all duration-200 transform hover:scale-110" data-rating="3">★</button>
+                    <button type="button" class="star-btn text-6xl text-gray-300 hover:text-yellow-400 transition-all duration-200 transform hover:scale-110" data-rating="4">★</button>
+                    <button type="button" class="star-btn text-6xl text-gray-300 hover:text-yellow-400 transition-all duration-200 transform hover:scale-110" data-rating="5">★</button>
+                </div>
+                <input type="hidden" id="rating" name="rating" value="" required>
+                <p class="text-center text-sm text-gray-600" id="ratingText">Selecciona tu calificación</p>
+            </div>
+
+            <!-- Like/Dislike -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                    ¿Te gustaron las recomendaciones?
+                </label>
+                <div class="flex gap-4 justify-center">
+                    <button type="button" 
+                            class="like-btn flex-1 p-4 rounded-xl border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-200 transform hover:scale-105"
+                            data-liked="true">
+                        <div class="text-4xl mb-2">👍</div>
+                        <div class="text-sm font-medium text-gray-700">Me gustó</div>
+                    </button>
+                    <button type="button" 
+                            class="like-btn flex-1 p-4 rounded-xl border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 transition-all duration-200 transform hover:scale-105"
+                            data-liked="false">
+                        <div class="text-4xl mb-2">👎</div>
+                        <div class="text-sm font-medium text-gray-700">No me gustó</div>
+                    </button>
+                </div>
+                <input type="hidden" id="liked" name="liked" value="">
+            </div>
+
+            <!-- Comentario -->
+            <div>
+                <label for="comment" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Comentario (opcional)
+                </label>
+                <textarea 
+                    id="comment" 
+                    name="comment" 
+                    rows="4" 
+                    maxlength="500"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-indigo-500 focus:ring-indigo-500 transition-all duration-200"
+                    placeholder="Cuéntanos más sobre tu experiencia..."></textarea>
+                <p class="text-xs text-gray-500 mt-1">Máximo 500 caracteres</p>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3">
+                <button type="button" 
+                        onclick="closeFeedbackModal()"
+                        class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-all duration-200">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        id="submitBtn"
+                        class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    Enviar Feedback
+                </button>
+            </div>
+        </form>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="hidden absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-2xl">
+            <div class="text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+                <p class="mt-4 text-gray-700 font-medium">Enviando feedback...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================= -->
+<!-- ESTILOS DEL MODAL -->
+<!-- ================================= -->
+<style>
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    #feedbackModal.show { display: flex !important; animation: modalFadeIn 0.3s ease-out; }
+    .star-btn.active { color: #FBBF24 !important; }
+    .like-btn.active-like { border-color: #10B981 !important; background-color: #D1FAE5 !important; }
+    .like-btn.active-dislike { border-color: #EF4444 !important; background-color: #FEE2E2 !important; }
+</style>
+
+<!-- ================================= -->
+<!-- JAVASCRIPT DEL MODAL -->
+<!-- ================================= -->
+<script>
+let selectedRating = 0;
+let selectedLiked = null;
+
+function openFeedbackModal(analysisId) {
+    document.getElementById('analysis_id').value = analysisId;
+    const modal = document.getElementById('feedbackModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    resetFeedbackForm();
+}
+
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('show');
+    document.body.style.overflow = 'auto';
+    resetFeedbackForm();
+}
+
+function resetFeedbackForm() {
+    selectedRating = 0;
+    selectedLiked = null;
+    document.getElementById('rating').value = '';
+    document.getElementById('liked').value = '';
+    document.getElementById('comment').value = '';
+    document.getElementById('ratingText').textContent = 'Selecciona tu calificación';
+    document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.color = '#D1D5DB';
+    });
+    document.querySelectorAll('.like-btn').forEach(btn => btn.classList.remove('active-like', 'active-dislike'));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const starButtons = document.querySelectorAll('.star-btn');
+    const ratingMessages = {1: '😞 Muy malo', 2: '😕 Malo', 3: '😐 Regular', 4: '😊 Bueno', 5: '🤩 Excelente'};
+    
+    starButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            selectedRating = parseInt(this.dataset.rating);
+            document.getElementById('rating').value = selectedRating;
+            document.getElementById('ratingText').textContent = ratingMessages[selectedRating];
+            starButtons.forEach((btn, index) => {
+                if (index < selectedRating) {
+                    btn.classList.add('active');
+                    btn.style.color = '#FBBF24';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.color = '#D1D5DB';
+                }
+            });
+        });
+        button.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            starButtons.forEach((btn, index) => btn.style.color = index < rating ? '#FBBF24' : '#D1D5DB');
+        });
+    });
+    
+    document.getElementById('starsContainer').addEventListener('mouseleave', function() {
+        starButtons.forEach((btn, index) => btn.style.color = index < selectedRating ? '#FBBF24' : '#D1D5DB');
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            selectedLiked = this.dataset.liked === 'true';
+            document.getElementById('liked').value = this.dataset.liked;
+            document.querySelectorAll('.like-btn').forEach(btn => btn.classList.remove('active-like', 'active-dislike'));
+            this.classList.add(selectedLiked ? 'active-like' : 'active-dislike');
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!selectedRating) {
+            alert('Por favor, selecciona una calificación');
+            return;
+        }
+
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        document.getElementById('submitBtn').disabled = true;
+
+        const formData = new FormData(this);
+        try {
+            const response = await fetch('/feedback/submit/', {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value}
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                closeFeedbackModal();
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-[60]';
+                toast.innerHTML = '<div class="flex items-center gap-3"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="font-semibold">¡Gracias por tu feedback! 🎉</span></div>';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.transform = 'translateX(400px)';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                alert('Error: ' + data.error);
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('submitBtn').disabled = false;
+            }
+        } catch (error) {
+            alert('Error al enviar el feedback. Intenta de nuevo.');
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('submitBtn').disabled = false;
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('feedbackModal').addEventListener('click', function(e) {
+        if (e.target === this) closeFeedbackModal();
+    });
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('feedbackModal').classList.contains('show')) {
+        closeFeedbackModal();
+    }
+});
+</script>
+
+{% endblock %}

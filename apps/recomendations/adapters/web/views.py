@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from apps.auth_app.adapters.persistence.models import ProfileModel
-from apps.recomendations.models import HaircutStyleModel, BeardStyleModel, RecommendationModel
+from apps.recomendations.models import HaircutStyleModel, BeardStyleModel, RecommendationModel,FACE_SHAPE_CHOICES, DIFFICULTY_CHOICES
 from apps.recomendations.adapters.web.forms import HaircutStyleForm, BeardStyleForm
 from apps.recomendations.core.use_cases import (
     GenerateHaircutRecommendationsUseCase,
@@ -188,46 +188,45 @@ def is_admin(user):
 @login_required
 @user_passes_test(is_admin)
 def haircuts_list(request):
-    haircuts = HaircutStyleModel.objects.all().order_by('-created_at')
-    
-    # Búsqueda
-    query = request.GET.get('q', '')
-    if query:
-        haircuts = haircuts.filter(
-            Q(name__icontains=query) | 
-            Q(description__icontains=query)
-        )
-    
-    # Filtro por género
+    query = request.GET.get('q', '').strip()
     gender_filter = request.GET.get('gender', '')
-    if gender_filter:
-        haircuts = haircuts.filter(suitable_for_gender=gender_filter)
-    
-    # Filtro por longitud de cabello
     length_filter = request.GET.get('length', '')
-    if length_filter:
-        haircuts = haircuts.filter(hair_length_required=length_filter)
-    
-    # Paginación
-    paginator = Paginator(haircuts, 12)
-    page = request.GET.get('page')
-    page_obj = paginator.get_page(page)
-    
-    # Datos para filtros
-    genders = HaircutStyleModel.objects.values_list('suitable_for_gender', flat=True).distinct()
-    lengths = HaircutStyleModel.objects.values_list('hair_length_required', flat=True).distinct()
-    
-    context = {
-        'page_obj': page_obj,
-        'total_count': haircuts.count(),
-        'query': query,
-        'gender_filter': gender_filter,
-        'length_filter': length_filter,
-        'genders': genders,
-        'lengths': lengths,
-    }
-    return render(request, 'admin/haircuts_list.html', context)
 
+    haircuts = HaircutStyleModel.objects.all()
+
+    # Búsqueda por texto
+    if query:
+        haircuts = haircuts.filter(name__icontains=query) | haircuts.filter(description__icontains=query)
+
+    # Filtro por género
+    if gender_filter:
+        haircuts = haircuts.filter(gender=gender_filter)
+
+    # Filtro por longitud (JSONField contiene)
+    if length_filter:
+        haircuts = haircuts.filter(hair_length_required__icontains=length_filter)
+
+    # Listas de opciones
+    gender_choices = HaircutStyleModel.GENDER_CHOICES
+    # Para las longitudes, obtén valores únicos del campo JSON
+    all_lengths = ["corto", "medio", "largo"]
+
+    # Paginación opcional
+    from django.core.paginator import Paginator
+    paginator = Paginator(haircuts.order_by('name'), 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+        "query": query,
+        "gender_filter": gender_filter,
+        "length_filter": length_filter,
+        "gender_choices": gender_choices,
+        "lengths": all_lengths,
+        "total_count": haircuts.count(),
+    }
+    return render(request, "admin/haircuts_list.html", context)
 @login_required
 @user_passes_test(is_admin)
 def haircut_create(request):
@@ -236,7 +235,7 @@ def haircut_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Corte de cabello creado exitosamente.')
-            return redirect('admin:haircuts_list')
+            return redirect('recomendations:haircuts_list')
     else:
         form = HaircutStyleForm()
     
@@ -261,7 +260,7 @@ def haircut_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Corte de cabello actualizado exitosamente.')
-            return redirect('admin:haircut_detail', pk=pk)
+            return redirect('recomendations:haircut_detail', pk=pk)
     else:
         form = HaircutStyleForm(instance=haircut)
     
@@ -286,47 +285,37 @@ def haircut_delete(request, pk):
 
 @login_required
 @user_passes_test(is_admin)
+
 def beard_styles_list(request):
-    beard_styles = BeardStyleModel.objects.all().order_by('-created_at')
-    
-    # Búsqueda
-    query = request.GET.get('q', '')
+    qs = BeardStyleModel.objects.all().order_by('-created_at')
+
+    query = request.GET.get('q', '').strip()
     if query:
-        beard_styles = beard_styles.filter(
-            Q(name__icontains=query) | 
-            Q(description__icontains=query)
-        )
-    
-    # Filtro por forma de rostro
-    shape_filter = request.GET.get('shape', '')
+        qs = qs.filter(Q(name__icontains=query) | Q(description__icontains=query))
+
+    # recibimos la key (ej: 'oval')
+    shape_filter = request.GET.get('shape', '').strip()
     if shape_filter:
-        beard_styles = beard_styles.filter(suitable_shapes__icontains=shape_filter)
-    
-    # Filtro por nivel de mantenimiento
-    maintenance_filter = request.GET.get('maintenance', '')
-    if maintenance_filter:
-        beard_styles = beard_styles.filter(maintenance_level=maintenance_filter)
-    
-    # Paginación
-    paginator = Paginator(beard_styles, 12)
-    page = request.GET.get('page')
-    page_obj = paginator.get_page(page)
-    
-    # Datos para filtros
-    face_shapes = ['Ovalado', 'Redondo', 'Cuadrado', 'Corazón', 'Diamante', 'Triangular']
-    maintenance_levels = BeardStyleModel.objects.values_list('maintenance_level', flat=True).distinct()
-    
+        qs = qs.filter(suitable_for_shapes__contains=[shape_filter])
+
+    difficulty_filter = request.GET.get('difficulty', '').strip()
+    if difficulty_filter:
+        qs = qs.filter(difficulty_level=difficulty_filter)
+
+    paginator = Paginator(qs, 12)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     context = {
         'page_obj': page_obj,
-        'total_count': beard_styles.count(),
+        'total_count': qs.count(),
         'query': query,
         'shape_filter': shape_filter,
-        'maintenance_filter': maintenance_filter,
-        'face_shapes': face_shapes,
-        'maintenance_levels': maintenance_levels,
+        'difficulty_filter': difficulty_filter,
+        # pasar choices tal como están (lista de tuplas (key,label))
+        'face_shape_choices': FACE_SHAPE_CHOICES,
+        'difficulty_choices': DIFFICULTY_CHOICES,
     }
     return render(request, 'admin/beard_styles_list.html', context)
-
 @login_required
 @user_passes_test(is_admin)
 def beard_style_create(request):
@@ -335,7 +324,7 @@ def beard_style_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Estilo de barba creado exitosamente.')
-            return redirect('admin:beard_styles_list')
+            return redirect('recomendations:beard_styles_list')
     else:
         form = BeardStyleForm()
     
@@ -360,7 +349,7 @@ def beard_style_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Estilo de barba actualizado exitosamente.')
-            return redirect('admin:beard_style_detail', pk=pk)
+            return redirect('recomendations:beard_style_detail', pk=pk)
     else:
         form = BeardStyleForm(instance=beard_style)
     
@@ -378,8 +367,9 @@ def beard_style_delete(request, pk):
     if request.method == 'POST':
         beard_style.delete()
         messages.success(request, 'Estilo de barba eliminado exitosamente.')
-        return redirect('admin:beard_styles_list')
-    return redirect('admin:beard_style_detail', pk=pk)
+        return redirect('recomendations:beard_styles_list')
+    return redirect('recomendations:beard_style_detail', pk=pk)
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -404,8 +394,24 @@ def recommendations_list(request):
     if face_shape_filter:
         recommendations = recommendations.filter(face_shape=face_shape_filter)
     
+    # 🆕 Enriquecer cada recomendación con los nombres de los estilos
+    for rec in recommendations:
+        try:
+            # Parsear IDs de haircut_styles_ids (viene como JSON string)
+            haircut_ids = json.loads(rec.haircut_styles_ids) if rec.haircut_styles_ids else []
+            beard_ids = json.loads(rec.beard_styles_ids) if rec.beard_styles_ids else []
+            
+            # Obtener objetos de estilos
+            rec.haircut_styles = HaircutStyleModel.objects.filter(id__in=haircut_ids)
+            rec.beard_styles = BeardStyleModel.objects.filter(id__in=beard_ids)
+            
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"⚠️ Error al parsear IDs de recomendación {rec.id}: {e}")
+            rec.haircut_styles = []
+            rec.beard_styles = []
+    
     # Paginación
-    paginator = Paginator(recommendations, 12)  # 12 elementos por página
+    paginator = Paginator(recommendations, 12)
     page = request.GET.get('page')
     page_obj = paginator.get_page(page)
     
@@ -424,8 +430,33 @@ def recommendations_list(request):
     }
     return render(request, 'admin/recommendations_list.html', context)
 
+
 @login_required
 @user_passes_test(is_admin)
 def recommendation_detail(request, pk):
-    recommendation = get_object_or_404(RecommendationModel.objects.select_related('user__profile'), pk=pk)
-    return render(request, 'admin/recommendation_detail.html', {'recommendation': recommendation})
+    recommendation = get_object_or_404(
+        RecommendationModel.objects.select_related('user__profile'), 
+        pk=pk
+    )
+    
+    # 🆕 Obtener los estilos completos con sus nombres e imágenes
+    try:
+        # Parsear IDs
+        haircut_ids = json.loads(recommendation.haircut_styles_ids) if recommendation.haircut_styles_ids else []
+        beard_ids = json.loads(recommendation.beard_styles_ids) if recommendation.beard_styles_ids else []
+        
+        # Obtener objetos completos
+        haircut_styles = HaircutStyleModel.objects.filter(id__in=haircut_ids)
+        beard_styles = BeardStyleModel.objects.filter(id__in=beard_ids)
+        
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"⚠️ Error al parsear IDs: {e}")
+        haircut_styles = []
+        beard_styles = []
+    
+    context = {
+        'recommendation': recommendation,
+        'haircut_styles': haircut_styles,
+        'beard_styles': beard_styles,
+    }
+    return render(request, 'admin/recommendation_detail.html', context)

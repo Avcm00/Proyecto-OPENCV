@@ -90,7 +90,7 @@
             <div class="flex justify-between py-2 border-b border-gray-100">
               <span class="text-gray-600 font-medium">Género Adecuado:</span>
               <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold">
-                {{ haircut.suitable_for_gender }}
+                {{ haircut.get_gender_display }}
               </span>
             </div>
             <div class="flex justify-between py-2 border-b border-gray-100">
@@ -99,44 +99,56 @@
                 {{ haircut.hair_length_required }}
               </span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-gray-600 font-medium">Dificultad:</span>
-              <div class="flex items-center">
-                {% for i in "12345" %}
-                  {% if forloop.counter <= haircut.difficulty_level %}
-                    <i class='bx bxs-star text-blue-500 text-lg'></i>
-                  {% else %}
-                    <i class='bx bx-star text-gray-300 text-lg'></i>
-                  {% endif %}
-                {% endfor %}
-                <span class="ml-2 text-sm font-bold text-gray-700">{{ haircut.difficulty_level }}/5</span>
-              </div>
-            </div>
+           <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600 font-medium">Dificultad:</span>
+        <div class="flex items-center">
+          {% if haircut.difficulty_level == 'facil' %}
+            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+              {{ haircut.get_difficulty_level_display }}
+            </span>
+          {% elif haircut.difficulty_level == 'medio' %}
+            <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold">
+              {{ haircut.get_difficulty_level_display }}
+            </span>
+          {% elif haircut.difficulty_level == 'dificil' %}
+            <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold">
+              {{ haircut.get_difficulty_level_display }}
+            </span>
+          {% else %}
+            <span class="text-gray-500 italic">No especificada</span>
+          {% endif %}
+        </div>
           </div>
         </div>
 
         <!-- Formas de Rostro -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <i class='bx bx-user text-yellow-400 text-2xl mr-2'></i>
-            Formas de Rostro Compatibles
-          </h3>
-          <div class="flex flex-wrap gap-2">
-            {% for shape in haircut.suitable_shapes %}
-            <span class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-4 py-2 rounded-lg text-sm font-bold shadow-sm">
-              {{ shape }}
-            </span>
-            {% endfor %}
-          </div>
-        </div>
+        <!-- Formas de Rostro Compatibles -->
+  <div class="bg-white rounded-lg shadow-sm p-6">
+    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+      <i class='bx bx-user text-yellow-400 text-2xl mr-2'></i>
+      Formas de Rostro Compatibles
+    </h3>
+    <div class="flex flex-wrap gap-2">
+      {% if haircut.suitable_for_shapes %}
+        {% for shape in haircut.suitable_for_shapes %}
+          <span class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-4 py-2 rounded-lg text-sm font-bold shadow-sm">
+            {{ shape }}
+          </span>
+        {% endfor %}
+      {% else %}
+        <span class="text-gray-500 italic">No se especificaron formas de rostro.</span>
+      {% endif %}
+    </div>
+  </div>
+
 
         <!-- Metadatos -->
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <div class="text-xs text-gray-500 space-y-1">
-            <p><strong>Creado:</strong> {{ haircut.created_at|date:"d/m/Y H:i" }}</p>
-            <p><strong>Última actualización:</strong> {{ haircut.updated_at|date:"d/m/Y H:i" }}</p>
-          </div>
-        </div>
+    <div class="text-xs text-gray-500 space-y-1">
+      <p><strong>Creado:</strong> {{ haircut.created_at|date:"d/m/Y H:i" }}</p>
+      <p><strong>Última actualización:</strong> {{ haircut.updated_at|date:"d/m/Y H:i" }}</p>
+    </div>
+  </div>
 
       </div>
     </div>

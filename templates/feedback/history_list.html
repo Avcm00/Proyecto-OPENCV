@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Mi Historial de Análisis{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    
+    <!-- Header con Estadísticas -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8 mb-8 text-white">
+        <h1 class="text-4xl font-bold mb-6 flex items-center gap-3">
+            <span>📜</span> Mi Historial de Análisis
+        </h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Stat Card 1 -->
+            <div class="bg-white/20 backdrop-blur-lg rounded-xl p-6 text-center transform transition hover:scale-105">
+                <div class="text-5xl font-bold mb-2">{{ statistics.total_analyses }}</div>
+                <div class="text-sm opacity-90">Análisis Realizados</div>
+            </div>
+            
+            <!-- Stat Card 2 -->
+            <div class="bg-white/20 backdrop-blur-lg rounded-xl p-6 text-center transform transition hover:scale-105">
+                <div class="text-5xl font-bold mb-2">{{ statistics.most_common_shape|default:"—" }}</div>
+                <div class="text-sm opacity-90">Forma Más Común</div>
+            </div>
+            
+            <!-- Stat Card 3 -->
+            <div class="bg-white/20 backdrop-blur-lg rounded-xl p-6 text-center transform transition hover:scale-105">
+                <div class="text-5xl font-bold mb-2">
+                    {% if statistics.average_rating %}
+                        {{ statistics.average_rating }} ⭐
+                    {% else %}
+                        —
+                    {% endif %}
+                </div>
+                <div class="text-sm opacity-90">Rating Promedio</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h3 class="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+            <span>🔍</span> Filtrar Resultados
+        </h3>
+        
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Filtro: Forma de rostro -->
+            <select name="face_shape" class="form-select rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="">Todas las formas</option>
+                <option value="Oval" {% if filters.face_shape == 'Oval' %}selected{% endif %}>Oval</option>
+                <option value="Redondo" {% if filters.face_shape == 'Redondo' %}selected{% endif %}>Redondo</option>
+                <option value="Cuadrado" {% if filters.face_shape == 'Cuadrado' %}selected{% endif %}>Cuadrado</option>
+                <option value="Corazón" {% if filters.face_shape == 'Corazón' %}selected{% endif %}>Corazón</option>
+                <option value="Diamante" {% if filters.face_shape == 'Diamante' %}selected{% endif %}>Diamante</option>
+            </select>
+
+            <!-- Filtro: Rating mínimo -->
+            <select name="min_rating" class="form-select rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="">Todos los ratings</option>
+                <option value="5" {% if filters.min_rating == '5' %}selected{% endif %}>⭐⭐⭐⭐⭐ (5)</option>
+                <option value="4" {% if filters.min_rating == '4' %}selected{% endif %}>⭐⭐⭐⭐ (4+)</option>
+                <option value="3" {% if filters.min_rating == '3' %}selected{% endif %}>⭐⭐⭐ (3+)</option>
+            </select>
+
+            <!-- Filtro: Fecha desde -->
+            <input type="date" name="date_from" value="{{ filters.date_from }}" 
+                   class="form-input rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+
+            <!-- Filtro: Fecha hasta -->
+            <input type="date" name="date_to" value="{{ filters.date_to }}" 
+                   class="form-input rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+
+            <!-- Botón de aplicar -->
+            <button type="submit" 
+                    class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg px-6 py-2 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                Aplicar Filtros
+            </button>
+        </form>
+    </div>
+
+    <!-- Lista de Análisis -->
+    {% if history_entries %}
+        <div class="space-y-6">
+            {% for entry in history_entries %}
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Icono -->
+                    <div class="lg:col-span-2 flex justify-center">
+                        <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-4xl shadow-lg">
+                            👤
+                        </div>
+                    </div>
+
+                    <!-- Información -->
+                    <div class="lg:col-span-7">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">{{ entry.face_shape }}</h3>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <!-- Badge: Confianza -->
+                            <span class="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                                📊 {{ entry.get_confidence_percentage }}
+                            </span>
+                            
+                            <!-- Badge: Recomendaciones -->
+                            <span class="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium">
+                                ✂️ {{ entry.recommendations_count }} recomendaciones
+                            </span>
+                            
+                            <!-- Badge: Fecha -->
+                            <span class="inline-flex items-center gap-1 px-4 py-2 bg-gray-50 text-gray-700 rounded-full text-sm font-medium">
+                                📅 {{ entry.get_formatted_date }}
+                            </span>
+                            
+                            <!-- Badge: Rating -->
+                            {% if entry.feedback_rating %}
+                            <span class="inline-flex items-center gap-1 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= entry.feedback_rating %}
+                                        <span class="text-yellow-500">★</span>
+                                    {% else %}
+                                        <span class="text-gray-300">★</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="lg:col-span-3 flex flex-col gap-3">
+                        <a href="{% url 'feedback:history_detail' entry.id %}" 
+                           class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center font-semibold rounded-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                            Ver Detalles
+                        </a>
+                        
+                        {% if entry.pdf_path %}
+                        <a href="/media/{{ entry.pdf_path }}" target="_blank"
+                           class="bg-gradient-to-r from-pink-500 to-red-500 text-white text-center font-semibold rounded-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                            📄 Descargar PDF
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        <div class="flex justify-center items-center gap-4 mt-8">
+            {% if has_previous %}
+                <a href="?page={{ current_page|add:'-1' }}" 
+                   class="px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 font-semibold rounded-lg hover:bg-indigo-600 hover:text-white transition duration-300">
+                    ← Anterior
+                </a>
+            {% endif %}
+            
+            <span class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg">
+                Página {{ current_page }} de {{ total_pages }}
+            </span>
+            
+            {% if has_next %}
+                <a href="?page={{ current_page|add:'1' }}" 
+                   class="px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 font-semibold rounded-lg hover:bg-indigo-600 hover:text-white transition duration-300">
+                    Siguiente →
+                </a>
+            {% endif %}
+        </div>
+
+    {% else %}
+        <!-- Estado vacío -->
+        <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <div class="text-8xl mb-6 opacity-50">📭</div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">No hay análisis en tu historial</h2>
+            <p class="text-gray-600 mb-8">Realiza tu primer análisis facial para empezar</p>
+            <a href="/analysis/upload/" class="btn-view"
+               class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
+                Realizar Análisis
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

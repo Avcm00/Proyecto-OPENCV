@@ -1,10 +1,11 @@
 <!-- templates/recomendations/beard_styles_list.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
+
     <!-- Header -->
     <div class="mb-8">
       <div class="flex justify-between items-center">
@@ -13,7 +14,7 @@
           <p class="text-gray-600 mt-2">{{ total_count }} estilos en total</p>
         </div>
         <a href="{% url 'recomendations:beard_style_create' %}" 
-           class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg transition flex items-center shadow-md">
+           class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-lg transition flex items-center shadow-md">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
@@ -23,8 +24,9 @@
     </div>
 
     <!-- Filtros y Búsqueda -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-gray-800">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-yellow-400">
       <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
         <!-- Búsqueda -->
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
@@ -32,34 +34,32 @@
                  name="q" 
                  value="{{ query }}" 
                  placeholder="Nombre o descripción..."
-                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
         </div>
 
-        <!-- Filtro Forma Rostro -->
+        <!-- Filtro Forma de Rostro -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Rostro</label>
-          <select name="shape" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800">
-            <option value="">Todas</option>
-            {% for shape in face_shapes %}
-            <option value="{{ shape }}" {% if shape_filter == shape %}selected{% endif %}>
-              {{ shape }}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <!-- Filtro Mantenimiento -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Mantenimiento</label>
-          <select name="maintenance" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800">
-            <option value="">Todos</option>
-            {% for level in maintenance_levels %}
-            <option value="{{ level }}" {% if maintenance_filter == level %}selected{% endif %}>
-              Nivel {{ level }}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+  <label class="block text-sm font-semibold text-gray-800 mb-2">Forma de Rostro</label>
+  <div class="relative">
+    <select 
+      name="shape"
+      class="w-full appearance-none px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-700 text-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition duration-150 ease-in-out shadow-sm hover:border-gray-400"
+    >
+      <option value="">Todas</option>
+      {% for key, label in face_shape_choices %}
+        <option value="{{ key }}" {% if shape_filter == key %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endfor %}
+    </select>
+    <!-- Icono de flecha -->
+    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  </div>
+</div>
 
         <!-- Botones -->
         <div class="md:col-span-4 flex gap-2">
@@ -77,7 +77,7 @@
     <!-- Grid de Estilos -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       {% for style in page_obj %}
-      <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition group border-t-4 border-gray-800">
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-xl transition group border-t-4 border-yellow-400">
         <!-- Imagen -->
         <div class="relative h-48 bg-gray-200 overflow-hidden">
           {% if style.image_url %}
@@ -85,13 +85,13 @@
                alt="{{ style.name }}"
                class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
           {% else %}
-          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
-            <i class='bx bx-male text-white text-6xl'></i>
+          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-yellow-100 to-yellow-200">
+            <i class='bx bx-male text-yellow-600 text-6xl'></i>
           </div>
           {% endif %}
           
           <!-- Badge de popularidad -->
-          <div class="absolute top-2 right-2 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+          <div class="absolute top-2 right-2 bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
             ⭐ {{ style.popularity_score }}/10
           </div>
         </div>
@@ -101,20 +101,23 @@
           <h3 class="text-lg font-bold text-gray-900 mb-2 truncate">{{ style.name }}</h3>
           <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ style.description }}</p>
           
-          <!-- Tags -->
+          <!-- Info principal -->
           <div class="flex flex-wrap gap-1 mb-3">
-            <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">
-              Mantenimiento: {{ style.maintenance_level }}/5
-            </span>
-            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium">
-              {{ style.growth_time_weeks }} semanas
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-medium">
+              Dificultad: {{ style.get_difficulty_level_display }}
             </span>
           </div>
 
           <!-- Formas de rostro -->
-          <div class="text-xs text-gray-500 mb-3">
-            <strong>Para:</strong> {{ style.suitable_shapes|join:", " }}
-          </div>
+          {% if style.suitable_for_shapes %}
+            <div class="flex flex-wrap gap-1 mb-3">
+              {% for shape in style.suitable_for_shapes %}
+                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium">
+                  {{ shape|title }}
+                </span>
+              {% endfor %}
+            </div>
+          {% endif %}
 
           <!-- Acciones -->
           <div class="flex gap-2">
@@ -123,7 +126,7 @@
               Ver
             </a>
             <a href="{% url 'recomendations:beard_style_edit' style.id %}" 
-               class="flex-1 text-center bg-gray-800 hover:bg-gray-900 text-white py-2 rounded text-sm font-medium transition">
+               class="flex-1 text-center bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 rounded text-sm font-medium transition">
               Editar
             </a>
             <form method="POST" action="{% url 'recomendations:beard_style_delete' style.id %}" 
@@ -151,19 +154,19 @@
     <div class="flex justify-center">
       <nav class="inline-flex rounded-md shadow-sm -space-x-px">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}{% if maintenance_filter %}&maintenance={{ maintenance_filter }}{% endif %}" 
-           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-l-md">
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}" 
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-yellow-50 rounded-l-md">
           Anterior
         </a>
         {% endif %}
         
-        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-gray-100 text-sm font-medium text-gray-700">
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-yellow-50 text-sm font-medium text-gray-700">
           Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
         </span>
         
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}{% if maintenance_filter %}&maintenance={{ maintenance_filter }}{% endif %}" 
-           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-r-md">
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if shape_filter %}&shape={{ shape_filter }}{% endif %}" 
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-yellow-50 rounded-r-md">
           Siguiente
         </a>
         {% endif %}

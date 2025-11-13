@@ -1,5 +1,4 @@
-import time
-import traceback
+import datetime,json,time,traceback,cv2
 from celery import uuid
 from django.shortcuts import render
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
@@ -7,9 +6,10 @@ from django.views.decorators import gzip
 from apps.auth_app.adapters.persistence.models import ProfileModel
 from apps.facial_analysis.face_shape_detection import FaceShapeDetector
 from apps.facial_analysis.ml.face_shape_classifier import FaceShapeClassifier
-import cv2
+from django.core.files.base import ContentFile
 import numpy as np
 
+from apps.feedback.core.entities import AnalysisHistory
 from apps.recomendations.core.use_cases import (
     GenerateHaircutRecommendationsUseCase,
     GenerateBeardRecommendationsUseCase,
@@ -26,6 +26,7 @@ from apps.recomendations.adapters.ml.recommendation_engine import (
     RuleBasedRecommendationEngine,
     StyleCatalogServiceImpl
 )
+from apps.feedback.adapters.persistence.repositories import DjangoAnalysisHistoryRepository
 
 # Inicializar dependencias de recomendaciones (una vez)
 style_repository = DjangoStyleRepository()
@@ -33,6 +34,9 @@ recommendation_repository = DjangoRecommendationRepository()
 recommendation_engine = RuleBasedRecommendationEngine()
 style_catalog = StyleCatalogServiceImpl(style_repository)
 stop_camera = False  # Bandera global para detener la cámara
+# 🆕 Inicializar repositorio de historial
+history_repository = DjangoAnalysisHistoryRepository()
+
 # Mapeo de formas de rostro en español a enums
 FACE_SHAPE_MAPPING = {
     'oval': FaceShape.OVAL,
@@ -45,157 +49,182 @@ FACE_SHAPE_MAPPING = {
     'triangular': FaceShape.TRIANGULAR,
 }
 
+def debug_database_content():
+    """Función de debugging para verificar contenido de BD"""
+    from apps.recomendations.models import HaircutStyleModel, BeardStyleModel
+    
+    print("\n" + "="*80)
+    print("🔍 DEBUG: CONTENIDO DE BASE DE DATOS")
+    print("="*80)
+    
+    # 1. Contar total de estilos
+    total_haircuts = HaircutStyleModel.objects.count()
+    total_beards = BeardStyleModel.objects.count()
+    print(f"📊 Total estilos de corte: {total_haircuts}")
+    print(f"📊 Total estilos de barba: {total_beards}")
+    
+    # 2. Ver géneros disponibles
+    haircut_genders = HaircutStyleModel.objects.values_list('gender', flat=True).distinct()
+    print(f"👥 Géneros en HaircutStyleModel: {list(haircut_genders)}")
+    
+    # 3. Ver formas de rostro disponibles
+    print(f"\n📋 Primeros 5 estilos con sus formas compatibles:")
+    for style in HaircutStyleModel.objects.all()[:5]:
+        print(f"   - {style.name}:")
+        print(f"     Gender: {style.gender}")
+        print(f"     Suitable shapes: {style.suitable_for_shapes}")
+        print(f"     Hair lengths: {style.hair_length_required}")
+    
+    # 4. Buscar estilos para 'cuadrado' + 'male'
+    print(f"\n🔎 Buscando estilos para face_shape='cuadrado' y gender='male':")
+    
+    # Intento 1: Búsqueda exacta
+    from django.db.models import Q
+    estilos_male = HaircutStyleModel.objects.filter(
+        gender='male',
+        suitable_for_shapes__contains=['cuadrado']
+    )
+    print(f"   Método 1 (gender='male'): {estilos_male.count()} resultados")
+    
+    # Intento 2: Búsqueda alternativa
+    estilos_men = HaircutStyleModel.objects.filter(
+        gender='men',
+        suitable_for_shapes__contains=['cuadrado']
+    )
+    print(f"   Método 2 (gender='men'): {estilos_men.count()} resultados")
+    
+    # Intento 3: Ver todos los estilos sin filtro de género
+    all_cuadrado = HaircutStyleModel.objects.filter(
+        suitable_for_shapes__contains=['cuadrado']
+    )
+    print(f"   Método 3 (sin filtro género): {all_cuadrado.count()} resultados")
+    
+    if all_cuadrado.exists():
+        print(f"\n   📝 Estilos encontrados para 'cuadrado' (cualquier género):")
+        for s in all_cuadrado[:3]:
+            print(f"      - {s.name} (gender={s.gender})")
+    
+    print("="*80 + "\n")
 
 def generate_style_recommendations(face_shape_str, gender_str, hair_length_str, user_id):
     """
     Genera recomendaciones de estilos basadas en el análisis facial
-    
-    Args:
-        face_shape_str: Forma del rostro detectada (str)
-        gender_str: Género del usuario (str)
-        hair_length_str: Longitud del cabello (str)
-        user_id: ID del usuario
-    
-    Returns:
-        dict con recomendaciones de cortes y barbas
     """
-    print("\n" + ">" * 80)
-    print(f">>> ENTRANDO A generate_style_recommendations")
-    print(f"    face_shape_str = '{face_shape_str}'")
-    print(f"    gender_str = '{gender_str}'")
-    print(f"    hair_length_str = '{hair_length_str}'")
-    print(f"    user_id = {user_id}")
+    print(">>> ENTRANDO A generate_style_recommendations")
+    print(f"    Parámetros recibidos: face_shape={face_shape_str}, gender={gender_str}, hair_length={hair_length_str}")
     
+    # Inicializar variables para evitar UnboundLocalError
+    confidence = 0.0
+    tips = {}
+    haircut_styles = []
+    beard_styles = []
+
     try:
-        # Normalizar y convertir strings a enums
+        # 🔧 MAPEO DE GÉNERO MEJORADO
+        GENDER_MAPPING = {
+            'male': Gender.HOMBRE,
+            'hombre': Gender.HOMBRE,
+            'men': Gender.HOMBRE,
+            'masculino': Gender.HOMBRE,
+            'female': Gender.MUJER,
+            'mujer': Gender.MUJER,
+            'women': Gender.MUJER,
+            'femenino': Gender.MUJER,
+            'prefer_not_to_say': Gender.HOMBRE,  # Default
+            'otro': Gender.HOMBRE,  # Default
+        }
+        
+        # Normalizar y mapear FaceShape
         face_shape_normalized = face_shape_str.lower().strip()
-        print(f"    Normalizado: '{face_shape_normalized}'")
+        face_shape = FACE_SHAPE_MAPPING.get(face_shape_normalized, FaceShape.OVAL)
+        print(f"    ✓ Face shape mapeada: {face_shape}")
         
-        # Buscar en el mapeo
-        face_shape = FACE_SHAPE_MAPPING.get(face_shape_normalized)
-        print(f"    En mapeo: {face_shape}")
+        # Mapear género usando el diccionario
+        gender_normalized = gender_str.lower().strip()
+        gender = GENDER_MAPPING.get(gender_normalized, Gender.HOMBRE)
+        print(f"    ✓ Género mapeado: '{gender_str}' → {gender}")
         
-        if not face_shape:
-            # Si no se encuentra, intentar directamente
-            print(f"    ⚠️ No está en mapeo, intentando conversión directa...")
-            try:
-                face_shape = FaceShape(face_shape_normalized)
-                print(f"    ✓ Conversión directa exitosa: {face_shape}")
-            except ValueError as ve:
-                print(f"    ✗ ValueError en conversión: {ve}")
-                print(f"    Usando OVAL como fallback")
-                face_shape = FaceShape.OVAL
-        
-        # Convertir género
-        try:
-            gender = Gender(gender_str.lower())
-        except ValueError:
-            gender = Gender.HOMBRE
-        
-        # Convertir longitud de cabello
-        try:
-            hair_length = HairLength(hair_length_str.lower())
-            
-        except ValueError:
-            hair_length = HairLength.MEDIO
-        
-        print(f"Generando recomendaciones para: {face_shape.value}, {gender.value}, {hair_length.value}")
-        
-        # Generar recomendaciones de corte
-        haircut_use_case = GenerateHaircutRecommendationsUseCase(
-            recommendation_engine, style_catalog
-        )
+        # Mapear longitud de cabello
+        HAIR_LENGTH_MAPPING = {
+            'corto': HairLength.CORTO,
+            'short': HairLength.CORTO,
+            'medio': HairLength.MEDIO,
+            'medium': HairLength.MEDIO,
+            'largo': HairLength.LARGO,
+            'long': HairLength.LARGO,
+        }
+        hair_length = HAIR_LENGTH_MAPPING.get(hair_length_str.lower().strip(), HairLength.MEDIO)
+        print(f"    ✓ Hair length mapeada: {hair_length}")
+
+        # Generar recomendaciones de cortes
+        print(f"    🔍 Llamando a GenerateHaircutRecommendationsUseCase...")
+        haircut_use_case = GenerateHaircutRecommendationsUseCase(recommendation_engine, style_catalog)
         haircut_styles = haircut_use_case.execute(
-            face_shape=face_shape,
-            gender=gender,
-            hair_length=hair_length,
+            face_shape=face_shape, 
+            gender=gender, 
+            hair_length=hair_length, 
             max_results=6
         )
+        print(f"    ✓ Cortes obtenidos: {len(haircut_styles)}")
         
-        print(f"Estilos de corte encontrados: {len(haircut_styles)}")
-        
+        if not haircut_styles:
+            print(f"    ⚠️ WARNING: No se encontraron estilos de corte para:")
+            print(f"       - face_shape={face_shape}")
+            print(f"       - gender={gender}")
+            print(f"       - hair_length={hair_length}")
+
         # Generar recomendaciones de barba (solo hombres)
-        beard_styles = []
         if gender == Gender.HOMBRE:
-            beard_use_case = GenerateBeardRecommendationsUseCase(
-                recommendation_engine, style_catalog
-            )
-            beard_styles = beard_use_case.execute(
-                face_shape=face_shape,
-                gender=gender,
-                max_results=4
-            )
-            print(f"Estilos de barba encontrados: {len(beard_styles)}")
-        
-        # Calcular confidence score
-        confidence = 0.0
+            print(f"    🔍 Llamando a GenerateBeardRecommendationsUseCase...")
+            beard_use_case = GenerateBeardRecommendationsUseCase(recommendation_engine, style_catalog)
+            beard_styles = beard_use_case.execute(face_shape=face_shape, gender=gender, max_results=4)
+            print(f"    ✓ Estilos de barba obtenidos: {len(beard_styles)}")
+
+        # Calcular confidence si hay cortes
         if haircut_styles:
             confidence = sum(
-                recommendation_engine.calculate_style_score(
-                    style, face_shape, gender, hair_length
-                )
+                recommendation_engine.calculate_style_score(style, face_shape, gender, hair_length)
                 for style in haircut_styles
-            ) / len(haircut_styles)
-            confidence *= 100  # Convertir a porcentaje
-        
-        # Crear y guardar recomendación
-        recommendation = Recommendation(
-            user_id=user_id,
-            face_shape=face_shape,
-            gender=gender,
-            hair_length=hair_length,
-            haircut_styles=haircut_styles,
-            beard_styles=beard_styles,
-            confidence_score=confidence
-        )
-        
-        save_use_case = SaveRecommendationUseCase(recommendation_repository)
-        saved_recommendation = save_use_case.execute(recommendation)
-        
+            ) / len(haircut_styles) * 100
+            print(f"    ✓ Confidence calculada: {confidence:.2f}%")
+
         # Obtener tips
         tips = recommendation_engine.get_face_shape_tips(face_shape)
-        
-        # Formatear para el template
+        print(f"    ✓ Tips obtenidos: {len(tips) if tips else 0}")
+
+        # Crear diccionario de recomendaciones
         recommendations = {
-            'id': saved_recommendation.id,
             'cortes': [
                 {
-                    'id': style.id,
-                    'nombre': style.name,
-                    'descripcion': style.description,
-                    'imagen': style.image_url if style.image_url else 'https://via.placeholder.com/300x400?text=' + style.name.replace(' ', '+'),
-                    'beneficios': style.benefits,
-                    'dificultad': style.difficulty_level.value if hasattr(style.difficulty_level, 'value') else str(style.difficulty_level),
-                    'popularidad': style.popularity_score
-                }
-                for style in haircut_styles
+                    'nombre': s.name,
+                    'descripcion': s.description,
+                    'imagen': s.image_url or f'https://via.placeholder.com/300x400?text={s.name.replace(" ", "+")}',
+                    'beneficios': s.benefits
+                } for s in haircut_styles
             ],
             'barba': [
                 {
-                    'id': style.id,
-                    'nombre': style.name,
-                    'descripcion': style.description,
-                    'imagen': style.image_url if style.image_url else 'https://via.placeholder.com/300x400?text=' + style.name.replace(' ', '+'),
-                    'beneficios': style.benefits,
-                    'mantenimiento': style.maintenance_level.value if hasattr(style.maintenance_level, 'value') else str(style.maintenance_level)
-                }
-                for style in beard_styles
-            ] if beard_styles else None,
+                    'nombre': s.name,
+                    'descripcion': s.description,
+                    'imagen': s.image_url or f'https://via.placeholder.com/300x400?text={s.name.replace(" ", "+")}'
+                } for s in beard_styles
+            ],
             'confidence': confidence,
             'tips': tips
         }
+
+        print(f"    ✅ ÉXITO: Recomendaciones generadas:")
+        print(f"       - {len(recommendations['cortes'])} cortes")
+        print(f"       - {len(recommendations['barba'])} estilos de barba")
+        if recommendations['cortes']:
+            print(f"       - Primera recomendación: {recommendations['cortes'][0]['nombre']}")
         
-        print(f"    ✓✓✓ Recomendaciones generadas exitosamente: {len(recommendations['cortes'])} cortes")
-        print("<" * 80 + "\n")
         return recommendations
-        print("DEBUG >>> haircut_styles =", haircut_styles)
-        print("DEBUG >>> beard_styles =", beard_styles)
 
     except Exception as e:
-        print(f"    ✗✗✗ ERROR CRÍTICO en generate_style_recommendations: {e}")
-        print(f"    Tipo de error: {type(e).__name__}")
+        print(f"✗✗✗ ERROR en generate_style_recommendations: {e}")
+        import traceback
         traceback.print_exc()
-        print("<" * 80 + "\n")
         return None
 
 
@@ -208,12 +237,12 @@ def results(request):
     try:
         start_time = time.time()
         # Recoger predicciones durante 12 segundos
-        while time.time() - start_time < 12:
+        while time.time() - start_time < 5:
             _ = camera.get_frame()
             if len(camera.predictions_history) >= 8:
                 predictions_collected = True
                 break
-            time.sleep(0.15)
+            time.sleep(0.05)
 
         # Obtener resultados agregados
         face_shape_results = camera.get_aggregated_predictions()
@@ -266,6 +295,9 @@ def results(request):
                 print(f"   Género del perfil: '{user_gender}'")
                 print("=" * 80)
 
+                
+                debug_database_content()
+                
                 try:
                     recommendations = generate_style_recommendations(
                         face_shape_str=primary_shape,
@@ -288,7 +320,126 @@ def results(request):
                 print("=" * 80)
             else:
                 print("⚠️ No se generan recomendaciones: primary_shape = 'No detectado'")
-
+            # 🆕🆕🆕 GUARDAR EN EL HISTORIAL AUTOMÁTICAMENTE 🆕🆕🆕
+            if primary_shape != "No detectado" and recommendations and request.user.is_authenticated:
+                try:
+                    print("\n" + "🔷" * 40)
+                    print("💾 GUARDANDO ANÁLISIS EN HISTORIAL...")
+                    
+                    # 🔧 Función helper para convertir tipos NumPy a Python nativos
+                    def convert_to_native(obj):
+                        """Convierte tipos NumPy a tipos Python nativos para JSON"""
+                        if isinstance(obj, np.integer):
+                            return int(obj)
+                        elif isinstance(obj, np.floating):
+                            return float(obj)
+                        elif isinstance(obj, np.ndarray):
+                            return obj.tolist()
+                        elif isinstance(obj, dict):
+                            return {key: convert_to_native(value) for key, value in obj.items()}
+                        elif isinstance(obj, list):
+                            return [convert_to_native(item) for item in obj]
+                        else:
+                            return obj
+                    
+                    # Preparar datos del análisis (convertir NumPy types)
+                    analysis_data_dict = {
+                        'primary_shape': str(primary_shape),
+                        'primary_confidence': float(primary_confidence),
+                        'face_shape_results': [
+                            [str(shape), float(percent)] 
+                            for shape, percent in face_shape_results
+                        ],
+                        'measurements': convert_to_native(metrics) if metrics else {},
+                        'gender': str(user_gender)  # 🔧 Agregar género
+                    }
+                    
+                    # Preparar datos de recomendaciones
+                    recommendations_data_dict = {
+                        'cortes': [
+                            {
+                                'nombre': str(c.get('nombre', '')),
+                                'descripcion': str(c.get('descripcion', '')),
+                                'beneficios': [str(b) for b in c.get('beneficios', [])],
+                                'caracteristicas': [str(b) for b in c.get('beneficios', [])]
+                            }
+                            for c in recommendations.get('cortes', [])
+                        ],
+                        'barbas': [
+                            {
+                                'nombre': str(b.get('nombre', '')),
+                                'descripcion': str(b.get('descripcion', '')),
+                                'caracteristicas': []
+                            }
+                            for b in recommendations.get('barba', [])
+                        ] if recommendations.get('barba') else [],
+                        'tips': convert_to_native(recommendations.get('tips', {}))
+                    }
+                    
+                    # 🆕 GUARDAR LA IMAGEN DEL ROSTRO
+                    image_path_value = None
+                    if frame_array is not None:
+                        try:
+                            # Convertir frame a JPEG
+                            _, buffer = cv2.imencode('.jpg', frame_array)
+                            image_file = ContentFile(buffer.tobytes())
+                            
+                            # Generar nombre único
+                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                            filename = f'analysis_{request.user.id}_{timestamp}.jpg'
+                            
+                            # Guardar usando el storage de Django
+                            from django.core.files.storage import default_storage
+                            saved_path = default_storage.save(
+                                f'analysis_images/{datetime.now().strftime("%Y/%m/%d")}/{filename}',
+                                image_file
+                            )
+                            image_path_value = saved_path
+                            
+                            print(f"📸 Imagen guardada en: {saved_path}")
+                        except Exception as img_error:
+                            print(f"⚠️ Error al guardar imagen: {img_error}")
+                            import traceback as tb
+                            tb.print_exc()
+                    
+                    # 🆕 CREAR LA ENTIDAD AnalysisHistory
+                    analysis_history_entity = AnalysisHistory(
+                        id=None,  # Se generará en la BD
+                        user_id=str(request.user.id),
+                        face_shape=str(primary_shape),
+                        confidence=float(primary_confidence),
+                        analysis_data=json.dumps(analysis_data_dict),
+                        recommendations_data=json.dumps(recommendations_data_dict),
+                        recommendations_count=len(recommendations.get('cortes', [])) + len(recommendations.get('barba', []) or []),
+                        pdf_path=None,
+                        image_path=image_path_value,  # 🆕 AGREGAR IMAGEN
+                        created_at=datetime.now()  # 🔧 Usar datetime.now() en lugar de timezone.now() para compatibilidad
+                    )
+                    
+                    # 🆕 GUARDAR LA ENTIDAD
+                    history_entry = history_repository.save(analysis_history_entity)
+                    
+                    print(f"✅ Análisis guardado en historial con ID: {history_entry.id}")
+                    print(f"   Usuario: {request.user.username}")
+                    print(f"   Forma: {primary_shape}")
+                    print(f"   Imagen: {image_path_value or 'Sin imagen'}")
+                    print(f"   Recomendaciones: {len(recommendations.get('cortes', []))} cortes")
+                    print("🔷" * 40 + "\n")
+                    
+                    context_history_id = history_entry.id
+                    
+                except Exception as e:
+                    print(f"❌ ERROR al guardar en historial: {e}")
+                    import traceback as tb
+                    tb.print_exc()
+                    context_history_id = None
+            else:
+                context_history_id = None
+                if not request.user.is_authenticated:
+                    print("⚠️ Usuario no autenticado, no se guarda en historial")
+                else:
+                    print("⚠️ No se guarda: primary_shape no detectado o sin recomendaciones")
+                    
             context = {
                 'analysis': {
                     'face_shape_results': face_shape_results,
@@ -297,9 +448,44 @@ def results(request):
                     'gender': user_gender,
                     'measurements': metrics
                 },
-                'recommendations': recommendations
-            }
+                'recommendations': recommendations,
+                'history_id': context_history_id  # 🆕 ID del análisis guardado
 
+            }
+            # Serializar datos para JavaScript
+            analysis = context['analysis']
+            
+            context['analysis_json'] = json.dumps({
+                'primary_shape': analysis.get('primary_shape', ''),
+                'primary_confidence': float(analysis.get('primary_confidence', 0)),
+                'face_shape_results': [
+                    [str(shape), float(percent)] 
+                    for shape, percent in analysis.get('face_shape_results', [])
+                ],
+                'measurements': {
+                    k: float(v) if isinstance(v, (int, float)) else str(v)
+                    for k, v in (analysis.get('measurements') or {}).items()
+                } if analysis.get('measurements') else {}
+            })
+    
+            context['recommendations_json'] = json.dumps({
+                'cortes': [
+                    {
+                        'nombre': c.get('nombre', ''),
+                        'descripcion': c.get('descripcion', ''),
+                        'beneficios': c.get('beneficios', [])
+                    }
+                    for c in recommendations.get('cortes', [])[:3]
+                ] if recommendations else [],
+                'barba': [
+                    {
+                        'nombre': b.get('nombre', ''),
+                        'descripcion': b.get('descripcion', '')
+                    }
+                    for b in recommendations.get('barba', [])
+                ] if recommendations else [],
+                'tips': recommendations.get('tips', {}) if recommendations else {}
+            })
         return render(request, 'analysis/results.html', context)
 
     finally:
@@ -311,7 +497,6 @@ def main(request):
     global stop_camera
     stop_camera = False  # 🔄 Reiniciar bandera cuando se carga la página principal
     return render(request, 'analysis/analysis.html')
-
 
 
 class VideoCamera:

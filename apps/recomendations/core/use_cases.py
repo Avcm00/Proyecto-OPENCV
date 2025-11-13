@@ -11,7 +11,12 @@ from .entities import (
     Gender,
     HairLength
 )
+class SaveRecommendationUseCase:
+    def __init__(self, recommendation_repository):
+        self.repository = recommendation_repository
 
+    def execute(self, recommendation: Recommendation) -> Recommendation:
+        return self.repository.save(recommendation)
 
 class GenerateHaircutRecommendationsUseCase:
     """Genera recomendaciones de cortes de cabello"""
@@ -118,7 +123,7 @@ class GetRecommendationHistoryUseCase:
     def __init__(self, recommendation_repo):
         self.recommendation_repo = recommendation_repo
 
-    def execute(self, user_id: int, limit: int = 10) -> List[Recommendation]:
+    def execute(self, user_id: int, limit: int = 100) -> List[Recommendation]:
         """
         Obtiene las últimas recomendaciones del usuario
         

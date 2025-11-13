@@ -1,0 +1,1 @@
+# Web adapters - Feedback views

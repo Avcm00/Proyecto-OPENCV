@@ -1,39 +1,47 @@
 from django import forms
-from apps.recomendations.models import HaircutStyleModel, BeardStyleModel
+from apps.recomendations.models import HaircutStyleModel, BeardStyleModel, DIFFICULTY_CHOICES
 import json
+FACE_SHAPE_CHOICES = [
+    ('oval', 'Ovalado'),
+    ('redondo', 'Redondo'),
+    ('cuadrado', 'Cuadrado'),
+    ('corazon', 'Corazón'),
+    ('diamante', 'Diamante'),
+    ('triangular', 'Triangular'),
+]
+
+HAIR_LENGTH_CHOICES = [
+    ('', 'Seleccione una longitud'), 
+    ('corto', 'Corto'),
+    ('medio', 'Medio'),
+    ('largo', 'Largo'),
+]
 
 class HaircutStyleForm(forms.ModelForm):
     """Formulario para Estilos de Corte de Cabello"""
     
-    # Campos personalizados para manejar JSONFields como texto
-    suitable_for_shapes_text = forms.CharField(
-        label='Formas de Rostro (separadas por coma)',
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Ej: Ovalado, Redondo, Cuadrado'
-        }),
-        help_text='Lista de formas de rostro compatibles',
-        required=False
+    # --- Campos de texto para JSONField ---
+    suitable_for_shapes = forms.MultipleChoiceField( 
+        label='Formas de Rostro Compatibles',
+        choices=FACE_SHAPE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            # ✅ CAMBIO CLAVE: Usar CheckboxSelectMultiple
+            # Le asignamos una clase base que usaremos para seleccionar en JS
+            'class': 'shape-checkboxes-group', 
+        })
     )
     
-    suitable_for_gender_text = forms.CharField(
-        label='Géneros Adecuados (separados por coma)',
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Ej: Hombre, Mujer, Unisex'
-        }),
-        help_text='Lista de géneros compatibles',
-        required=False
-    )
+    # ❌ ELIMINADO: suitable_for_gender_text (porque el modelo ahora usa el campo 'gender' CharField)
+    # Si quieres que el usuario lo edite, solo usa el campo 'gender' normal del modelo.
     
-    hair_length_required_text = forms.CharField(
-        label='Longitudes de Cabello Requeridas (separadas por coma)',
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Ej: Corto, Medio, Largo'
-        }),
-        help_text='Longitudes de cabello requeridas',
-        required=False
+    hair_length_required = forms.ChoiceField(
+        label='Longitud de Cabello Requerida',
+        choices=HAIR_LENGTH_CHOICES,
+        required=True, # Debe elegir UNO
+        widget=forms.Select(attrs={
+            'class': 'form-select', # Renderiza un menú desplegable
+        })
     )
     
     benefits_text = forms.CharField(
@@ -62,10 +70,14 @@ class HaircutStyleForm(forms.ModelForm):
         fields = [
             'name',
             'description',
-            'image_url',
+            'gender', # 🆕 Agregado el campo 'gender' que es un CharField normal
+            'image',  # 🔄 CORREGIDO: Usar 'image' en lugar de 'image_url'
             'difficulty_level',
             'popularity_score',
-            'is_active'
+            'is_active',
+            
+            'benefits_text', 
+            'tags_text',
         ]
         widgets = {
             'name': forms.TextInput(attrs={
@@ -77,13 +89,13 @@ class HaircutStyleForm(forms.ModelForm):
                 'placeholder': 'Descripción detallada del estilo...',
                 'rows': 4
             }),
-            'image_url': forms.URLInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'https://ejemplo.com/imagen.jpg'
-            }),
-            'difficulty_level': forms.Select(attrs={
+            # ❌ ELIMINADO: widget para 'image_url'
+            # 'image': ImageInput (si deseas un widget específico, pero Django usa FileInput por defecto)
+            'gender': forms.Select(attrs={ # 🆕 Widget para el campo 'gender' (Charfield)
                 'class': 'form-select'
             }),
+            'difficulty_level': forms.Select(attrs={'class': 'form-select'}),
+            
             'popularity_score': forms.NumberInput(attrs={
                 'class': 'form-input',
                 'min': 0,
@@ -99,9 +111,11 @@ class HaircutStyleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
             # Rellenar campos de texto con datos del JSONField
-            self.fields['suitable_for_shapes_text'].initial = ', '.join(self.instance.suitable_for_shapes)
-            self.fields['suitable_for_gender_text'].initial = ', '.join(self.instance.suitable_for_gender)
-            self.fields['hair_length_required_text'].initial = ', '.join(self.instance.hair_length_required)
+            self.fields['suitable_for_shapes'].initial = self.instance.suitable_for_shapes
+            self.fields['hair_length_required'].initial = self.instance.hair_length_required
+            model_lengths = self.instance.hair_length_required
+            if model_lengths:
+                self.fields['hair_length_required'].initial = model_lengths[0]
             self.fields['benefits_text'].initial = ', '.join(self.instance.benefits)
             self.fields['tags_text'].initial = ', '.join(self.instance.tags)
     
@@ -109,14 +123,15 @@ class HaircutStyleForm(forms.ModelForm):
         instance = super().save(commit=False)
         
         # Convertir campos de texto a listas para JSONField
-        shapes = self.cleaned_data.get('suitable_for_shapes_text', '')
-        instance.suitable_for_shapes = [s.strip() for s in shapes.split(',') if s.strip()]
+        instance.gender = self.cleaned_data.get('gender', instance.gender)
+        instance.suitable_for_shapes = self.cleaned_data.get('suitable_for_shapes', [])     
+        # ❌ ELIMINADO: Conversión de suitable_for_gender (manejo por campo 'gender' normal)
         
-        genders = self.cleaned_data.get('suitable_for_gender_text', '')
-        instance.suitable_for_gender = [g.strip() for g in genders.split(',') if g.strip()]
-        
-        lengths = self.cleaned_data.get('hair_length_required_text', '')
-        instance.hair_length_required = [l.strip() for l in lengths.split(',') if l.strip()]
+        length_str = self.cleaned_data.get('hair_length_required')
+        if length_str:
+            instance.hair_length_required = [length_str]
+        else:
+            instance.hair_length_required = []
         
         benefits = self.cleaned_data.get('benefits_text', '')
         instance.benefits = [b.strip() for b in benefits.split(',') if b.strip()]
@@ -127,22 +142,21 @@ class HaircutStyleForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
-
-
+    
+    
+    
 class BeardStyleForm(forms.ModelForm):
     """Formulario para Estilos de Barba"""
-    
-    # Campos personalizados para manejar JSONFields como texto
-    suitable_for_shapes_text = forms.CharField(
-        label='Formas de Rostro (separadas por coma)',
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Ej: Ovalado, Redondo, Cuadrado'
-        }),
-        help_text='Lista de formas de rostro compatibles',
-        required=False
+
+    suitable_for_shapes = forms.MultipleChoiceField(
+        label='Formas de Rostro Compatibles',
+        choices=FACE_SHAPE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'shape-checkboxes-group space-y-1'
+        })
     )
-    
+
     benefits_text = forms.CharField(
         label='Beneficios (separados por coma)',
         widget=forms.Textarea(attrs={
@@ -150,28 +164,31 @@ class BeardStyleForm(forms.ModelForm):
             'placeholder': 'Ej: Define mandíbula, Añade masculinidad, Versátil',
             'rows': 3
         }),
-        help_text='Beneficios del estilo',
         required=False
     )
-    
+
     tags_text = forms.CharField(
         label='Etiquetas (separadas por coma)',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'Ej: clásico, moderno, elegante'
         }),
-        help_text='Etiquetas del estilo',
         required=False
     )
-    
+
+    difficulty_level = forms.ChoiceField(
+        label='Nivel de Dificultad',
+        choices=DIFFICULTY_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True
+    )
+
     class Meta:
         model = BeardStyleModel
         fields = [
-            'name',
-            'description',
-            'image_url',
-            'maintenance_level',
-            'popularity_score',
+            'name', 'description', 'image',
+            'difficulty_level', 'popularity_score',
+            'suitable_for_shapes',  # 👈 agrégalo aquí
             'is_active'
         ]
         widgets = {
@@ -181,15 +198,8 @@ class BeardStyleForm(forms.ModelForm):
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-textarea',
-                'placeholder': 'Descripción detallada del estilo...',
-                'rows': 4
-            }),
-            'image_url': forms.URLInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'https://ejemplo.com/imagen.jpg'
-            }),
-            'maintenance_level': forms.Select(attrs={
-                'class': 'form-select'
+                'rows': 4,
+                'placeholder': 'Descripción detallada del estilo...'
             }),
             'popularity_score': forms.NumberInput(attrs={
                 'class': 'form-input',
@@ -197,32 +207,29 @@ class BeardStyleForm(forms.ModelForm):
                 'max': 10,
                 'step': 0.1
             }),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': 'form-checkbox'
-            })
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            # Rellenar campos de texto con datos del JSONField
-            self.fields['suitable_for_shapes_text'].initial = ', '.join(self.instance.suitable_for_shapes)
-            self.fields['benefits_text'].initial = ', '.join(self.instance.benefits)
-            self.fields['tags_text'].initial = ', '.join(self.instance.tags)
-    
+            self.fields['suitable_for_shapes'].initial = self.instance.suitable_for_shapes or []
+            self.fields['benefits_text'].initial = ', '.join(self.instance.benefits or [])
+            self.fields['tags_text'].initial = ', '.join(self.instance.tags or [])
+
     def save(self, commit=True):
         instance = super().save(commit=False)
-        
-        # Convertir campos de texto a listas para JSONField
-        shapes = self.cleaned_data.get('suitable_for_shapes_text', '')
-        instance.suitable_for_shapes = [s.strip() for s in shapes.split(',') if s.strip()]
-        
+
+        # ✅ Guardar lista de formas de rostro correctamente
+        instance.suitable_for_shapes = self.cleaned_data.get('suitable_for_shapes', [])
+
+        # ✅ Guardar beneficios y etiquetas
         benefits = self.cleaned_data.get('benefits_text', '')
         instance.benefits = [b.strip() for b in benefits.split(',') if b.strip()]
-        
+
         tags = self.cleaned_data.get('tags_text', '')
         instance.tags = [t.strip() for t in tags.split(',') if t.strip()]
-        
+
         if commit:
             instance.save()
         return instance

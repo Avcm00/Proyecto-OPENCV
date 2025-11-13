@@ -44,9 +44,7 @@
 
           <!-- Search and User Menu -->
           <div class="flex items-center space-x-4">
-            <button class="text-black hover:text-gray-700">
-              <i class="bx bx-search text-2xl"></i>
-            </button>
+            
             
             <!-- User Dropdown -->
             <div class="relative" x-data="{ open: false }">
@@ -211,10 +209,7 @@
   <div class="border-t border-gray-700 my-4"></div>
 
   <!-- Additional Admin Options -->
-  <a 
-    href="{% url 'reports:informe' %}" 
-    class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition group"
-  >
+  
     <i class='bx bx-bar-chart text-yellow-400 text-xl group-hover:scale-110 transition'></i>
     <span class="font-semibold">Estadísticas</span>
   </a>

@@ -1,0 +1,45 @@
+<!-- Componente de Estrellas (Solo visualización) -->
+<!-- 
+    Uso:
+    {% include 'feedback/components/rating_stars.html' with rating=5 size='small' %}
+    
+    Parámetros:
+    - rating: Número del 1 al 5 (requerido)
+    - size: 'small', 'medium', 'large' (opcional, default: medium)
+    - show_number: true/false (opcional, muestra el número al lado)
+-->
+
+{% load static %}
+
+<div class="inline-flex items-center gap-1 rating-stars" data-rating="{{ rating }}">
+    {% if size == 'small' %}
+        {% for i in "12345" %}
+            {% if forloop.counter <= rating %}
+                <span class="text-yellow-400 text-sm">★</span>
+            {% else %}
+                <span class="text-gray-300 text-sm">★</span>
+            {% endif %}
+        {% endfor %}
+    {% elif size == 'large' %}
+        {% for i in "12345" %}
+            {% if forloop.counter <= rating %}
+                <span class="text-yellow-400 text-3xl">★</span>
+            {% else %}
+                <span class="text-gray-300 text-3xl">★</span>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <!-- Medium (default) -->
+        {% for i in "12345" %}
+            {% if forloop.counter <= rating %}
+                <span class="text-yellow-400 text-xl">★</span>
+            {% else %}
+                <span class="text-gray-300 text-xl">★</span>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    {% if show_number %}
+        <span class="ml-2 text-sm font-medium text-gray-700">{{ rating }}/5</span>
+    {% endif %}
+</div>

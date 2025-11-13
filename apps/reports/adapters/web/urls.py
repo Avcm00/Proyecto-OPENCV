@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views  # Asegúrate de importar views
+from apps.reports.adapters.web.views import GenerateReportView, DownloadReportView
+
 
 app_name = 'reports'
 
 urlpatterns = [
-    path('informe/', views.informe, name='informe'),
+    path('generate/', GenerateReportView.as_view(), name='generate'),
+    path('download/', DownloadReportView.as_view(), name='download'),
 ]

@@ -42,9 +42,7 @@
           </div>
 
           <!-- Botón para cambiar imagen -->
-          <button type="button" onclick="changeImage()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition">
-            <i class="bx bx-camera mr-2"></i>Cambiar foto
-          </button>
+         
         </div>
       </div>
 
@@ -99,14 +97,6 @@
               </button>
           </form>
           
-          <a href="#" class="flex-1">
-            <button 
-              type="button"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full transition duration-300"
-            >
-              mostrar recomendaciones
-            </button>
-          </a>
         </div>
       </div>
     </div>
@@ -196,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
               statusMsg.textContent = "Cámara iniciada. Ejecutando análisis en 15s...";
               
               // Actualizar mensaje cada segundo
-              let secondsLeft = 15;
+              let secondsLeft = 5;
               const countdownInterval = setInterval(() => {
                   secondsLeft--;
                   if (secondsLeft > 0) {
@@ -209,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   clearInterval(countdownInterval);
                   statusMsg.textContent = "Análisis completado. Redirigiendo...";
                   window.location.href = "{% url 'analysis:results' %}";
-              }, 15000);
+              }, 3000);
           };      
 
           // iniciar conexión al stream

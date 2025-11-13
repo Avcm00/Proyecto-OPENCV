@@ -15,6 +15,38 @@ from apps.recomendations.core.entities import (
 )
 from ...models import RecommendationModel, HaircutStyleModel, BeardStyleModel
 
+FACE_SHAPE_DB_TO_ENUM = {
+    'oval': FaceShape.OVAL,
+    'ovalada': FaceShape.OVAL,  # <-- Mapeo para compatibilidad
+    'ovalado': FaceShape.OVAL,
+    'redonda': FaceShape.REDONDO,
+    'redondo': FaceShape.REDONDO,
+    'cuadrada': FaceShape.CUADRADO,
+    'cuadrado': FaceShape.CUADRADO,
+    'corazón': FaceShape.CORAZON,
+    'corazon': FaceShape.CORAZON,
+    'diamante': FaceShape.DIAMANTE,
+    'triangular': FaceShape.TRIANGULAR,
+}
+GENDER_DB_TO_ENUM = {
+    'men': Gender.HOMBRE,
+    'male': Gender.HOMBRE,
+    'hombre': Gender.HOMBRE,
+    'masculino': Gender.HOMBRE,
+    'women': Gender.MUJER,
+    'female': Gender.MUJER,
+    'mujer': Gender.MUJER,
+    'femenino': Gender.MUJER,
+}
+
+HAIR_LENGTH_DB_TO_ENUM = {
+    'corto': HairLength.CORTO,
+    'short': HairLength.CORTO,
+    'medio': HairLength.MEDIO,
+    'medium': HairLength.MEDIO,
+    'largo': HairLength.LARGO,
+    'long': HairLength.LARGO,
+}
 
 class DjangoRecommendationRepository:
     """Repositorio de recomendaciones usando Django ORM"""
@@ -47,7 +79,7 @@ class DjangoRecommendationRepository:
         
         return recommendation
 
-    def get_by_user(self, user_id: int, limit: int = 10) -> List[Recommendation]:
+    def get_by_user(self, user_id: int, limit: int = 100) -> List[Recommendation]:
         """
         Obtiene las recomendaciones de un usuario
         
@@ -110,37 +142,54 @@ class DjangoRecommendationRepository:
 class DjangoStyleRepository:
     """Repositorio de estilos usando Django ORM"""
     
+    
     def get_haircuts(
-        self, 
-        gender: Optional[Gender] = None,
-        hair_length: Optional[HairLength] = None,
-        face_shape: Optional[FaceShape] = None
+        self,
+        gender: Gender = None,
+        hair_length: HairLength = None,
+        face_shape: FaceShape = None
     ) -> List[HaircutStyle]:
         """
-        Obtiene estilos de corte de cabello con filtros opcionales
-        
-        Args:
-            gender: Filtrar por género
-            hair_length: Filtrar por longitud de cabello
-            face_shape: Filtrar por forma de rostro
-            
-        Returns:
-            Lista de estilos de corte
+        Obtiene estilos de corte con filtros opcionales
         """
-        queryset = HaircutStyleModel.objects.all()
-        
-        # Aplicar filtros si se proporcionan
+        from apps.recomendations.models import HaircutStyleModel
+
+        queryset = HaircutStyleModel.objects.filter(is_active=True)
+
+        # 🔧 Filtro de género corregido
         if gender:
-            queryset = queryset.filter(suitable_for_gender__contains=gender.value)
-        
-        if hair_length:
-            queryset = queryset.filter(hair_length_required__contains=hair_length.value)
-        
+            # Mapear enum a valor de BD
+            gender_db_values = {
+                Gender.HOMBRE: ['men', 'male', 'hombre'],
+                Gender.MUJER: ['women', 'female', 'mujer']
+            }
+            db_values = gender_db_values.get(gender, [])
+            if db_values:
+                queryset = queryset.filter(gender__in=db_values)
+
+        # 🔧 NO filtrar por face_shape o hair_length aquí
+        # Esos filtros se aplican después de convertir a entidades
+        # porque la BD usa strings y las entidades usan enums
+
+        # Convertir a entidades
+        all_styles = [self._haircut_model_to_entity(model) for model in queryset]
+
+        # 🔧 Aplicar filtros de face_shape y hair_length DESPUÉS de conversión
+        filtered_styles = all_styles
+
         if face_shape:
-            queryset = queryset.filter(suitable_for_shapes__contains=face_shape.value)
-        
-        # Convertir modelos Django a entidades de dominio
-        return [self._haircut_model_to_entity(model) for model in queryset]
+            filtered_styles = [
+                style for style in filtered_styles 
+                if face_shape in style.suitable_for_shapes
+            ]
+
+        if hair_length:
+            filtered_styles = [
+                style for style in filtered_styles 
+                if hair_length in style.hair_length_required
+            ]
+
+        return filtered_styles
 
     def get_beards(
         self,
@@ -182,42 +231,83 @@ class DjangoStyleRepository:
         except BeardStyleModel.DoesNotExist:
             return None
 
-    def _haircut_model_to_entity(self, model: HaircutStyleModel) -> HaircutStyle:
-        """Convierte un modelo Django a entidad de dominio"""
+    def _haircut_model_to_entity(self, model):
+        """
+        Convierte un modelo Django de corte a entidad de dominio.
+        Incluye normalización de valores de BD a enums.
+        """
+        from apps.recomendations.core.entities import (
+            HaircutStyle, FaceShape, Gender, HairLength
+        )
+
+        # Normalizar suitable_for_shapes
+        suitable_shapes = []
+        for shape in model.suitable_for_shapes:
+            normalized_shape = shape.lower().strip()
+            if normalized_shape in FACE_SHAPE_DB_TO_ENUM:
+                suitable_shapes.append(FACE_SHAPE_DB_TO_ENUM[normalized_shape])
+            else:
+                print(f"⚠️ WARNING: Shape '{shape}' no reconocida, ignorando...")
+
+        # Normalizar suitable_for_gender
+        suitable_genders = []
+        for gender in model.suitable_for_gender:
+            normalized_gender = gender.lower().strip()
+            if normalized_gender in GENDER_DB_TO_ENUM:
+                suitable_genders.append(GENDER_DB_TO_ENUM[normalized_gender])
+            else:
+                print(f"⚠️ WARNING: Gender '{gender}' no reconocido, ignorando...")
+
+        # Normalizar hair_length_required
+        hair_lengths = []
+        for length in model.hair_length_required:
+            normalized_length = length.lower().strip()
+            if normalized_length in HAIR_LENGTH_DB_TO_ENUM:
+                hair_lengths.append(HAIR_LENGTH_DB_TO_ENUM[normalized_length])
+            else:
+                print(f"⚠️ WARNING: Hair length '{length}' no reconocido, ignorando...")
+
         return HaircutStyle(
             id=model.id,
             name=model.name,
             description=model.description,
             image_url=model.image_url,
-            suitable_for_shapes=[
-                FaceShape(shape) for shape in model.suitable_for_shapes
-            ] if model.suitable_for_shapes else [],
-            suitable_for_gender=[
-                Gender(gender) for gender in model.suitable_for_gender
-            ] if hasattr(model, 'suitable_for_gender') and model.suitable_for_gender else [],
-            hair_length_required=[
-                HairLength(length) for length in model.hair_length_required
-            ] if hasattr(model, 'hair_length_required') and model.hair_length_required else [],
-            benefits=model.benefits if hasattr(model, 'benefits') else [],
-            difficulty_level=DifficultyLevel(model.difficulty_level) if hasattr(model, 'difficulty_level') and model.difficulty_level else DifficultyLevel.MEDIO,
-            popularity_score=model.popularity_score if hasattr(model, 'popularity_score') else 0.0,
-            tags=model.tags if hasattr(model, 'tags') else []
+            suitable_for_shapes=suitable_shapes,
+            suitable_for_gender=suitable_genders,
+            hair_length_required=hair_lengths,
+            benefits=model.benefits,
+            tags=model.tags,
+            difficulty_level=model.difficulty_level,
+            popularity_score=model.popularity_score
         )
 
-    def _beard_model_to_entity(self, model: BeardStyleModel) -> BeardStyle:
-        """Convierte un modelo Django a entidad de dominio"""
+    
+    def _beard_model_to_entity(self, model):
+        """
+        Convierte un modelo Django de barba a entidad de dominio.
+        SIN maintenance_level porque no existe en el modelo de BD.
+        """
+        from apps.recomendations.core.entities import BeardStyle, FaceShape
+
+        # Normalizar suitable_for_shapes
+        suitable_shapes = []
+        for shape in model.suitable_for_shapes:
+            normalized_shape = shape.lower().strip()
+            if normalized_shape in FACE_SHAPE_DB_TO_ENUM:
+                suitable_shapes.append(FACE_SHAPE_DB_TO_ENUM[normalized_shape])
+            else:
+                print(f"⚠️ WARNING: Shape '{shape}' no reconocida en barba, ignorando...")
+
+        # ✅ Crear BeardStyle SIN maintenance_level
         return BeardStyle(
             id=model.id,
             name=model.name,
             description=model.description,
             image_url=model.image_url,
-            suitable_for_shapes=[
-                FaceShape(shape) for shape in model.suitable_for_shapes
-            ] if model.suitable_for_shapes else [],
-            benefits=model.benefits if hasattr(model, 'benefits') else [],
-            maintenance_level=MaintenanceLevel(model.maintenance_level) if hasattr(model, 'maintenance_level') and model.maintenance_level else MaintenanceLevel.MEDIO,
-            popularity_score=model.popularity_score if hasattr(model, 'popularity_score') else 0.0,
-            tags=model.tags if hasattr(model, 'tags') else []
+            suitable_for_shapes=suitable_shapes,
+            benefits=model.benefits if model.benefits else [],
+            popularity_score=model.popularity_score if model.popularity_score else 0.0,
+            tags=model.tags if model.tags else []
         )
 
 

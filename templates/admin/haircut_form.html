@@ -56,14 +56,16 @@
             <!-- URL de Imagen -->
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                URL de la Imagen *
+                Imagen del Estilo *
               </label>
               {% if haircut.image_url %}
                 <img src="{{ haircut.image_url }}" alt="{{ haircut.name }}" class="w-32 h-32 object-cover rounded-lg mb-2">
               {% endif %}
-              {{ form.image_url }}
-              {% if form.image_url.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.image_url.errors.0 }}</p>
+
+              {{ form.image }} 
+
+              {% if form.image.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.image.errors.0 }}</p>
               {% endif %}
             </div>
           </div>
@@ -78,34 +80,42 @@
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Género -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Género Adecuado *
+            <div class="mb-4">
+              <label for="{{ form.gender.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Género al que aplica *
               </label>
-              {{ form.suitable_for_gender }}
-              {% if form.suitable_for_gender.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.suitable_for_gender.errors.0 }}</p>
+              
+              {{ form.gender }}
+            
+              {% if form.gender.help_text %}
+                  <p class="mt-1 text-xs text-gray-500">{{ form.gender.help_text }}</p>
               {% endif %}
-            </div>
+            
+              {% if form.gender.errors %}
+                  <p class="mt-1 text-sm text-red-600">
+                      {{ form.gender.errors.0 }}
+                  </p>
+              {% endif %}
+          </div>
 
             <!-- Longitud Requerida -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Longitud de Cabello Requerida *
-              </label>
-              {{ form.hair_length_required }}
-              {% if form.hair_length_required.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.hair_length_required.errors.0 }}</p>
-              {% endif %}
-            </div>
-
+            <div class="mb-4">
+    <label for="{{ form.hair_length_required.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+        Longitud de Cabello Requerida *
+    </label>
+    
+    {{ form.hair_length_required }} 
+    
+    {% if form.hair_length_required.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.hair_length_required.errors.0 }}</p>
+    {% endif %}
+</div>
             <!-- Nivel de Dificultad -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Nivel de Dificultad (1-5) *
+                Nivel de Dificultad (Fácil, Medio, Difícil) *
               </label>
-              {{ form.difficulty_level }}
-              {% if form.difficulty_level.errors %}
+              {{ form.difficulty_level }} {% if form.difficulty_level.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.difficulty_level.errors.0 }}</p>
               {% endif %}
             </div>
@@ -124,23 +134,29 @@
         </div>
 
         <!-- Formas de Rostro -->
-        <div class="border-b border-gray-200 pb-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <i class='bx bx-user text-yellow-400 text-2xl mr-2'></i>
-            Formas de Rostro Compatibles
-          </h2>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Formas de Rostro (separadas por coma) *
+        <div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+        Formas de Rostro (Selecciona uno o más) *
+    </label>
+
+    <div id="shape-buttons-container" class="flex flex-wrap gap-2">
+        {% for choice in form.suitable_for_shapes %}
+            <label 
+                class="shape-button px-4 py-2 rounded-full cursor-pointer transition duration-150 ease-in-out 
+                       {% if choice.data.selected %}bg-green-500 text-white{% else %}bg-blue-500 text-white{% endif %}"
+                data-value="{{ choice.data.value }}"
+            >
+                <span class="hidden">{{ choice.tag }}</span> 
+                
+                {{ choice.choice_label }}
             </label>
-            {{ form.suitable_shapes }}
-            <p class="mt-1 text-xs text-gray-500">Ejemplo: Ovalado, Redondo, Cuadrado</p>
-            {% if form.suitable_shapes.errors %}
-              <p class="mt-1 text-sm text-red-600">{{ form.suitable_shapes.errors.0 }}</p>
-            {% endif %}
-          </div>
-        </div>
+        {% endfor %}
+    </div>
+
+    {% if form.suitable_for_shapes.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.suitable_for_shapes.errors.0 }}</p>
+    {% endif %}
+</div>
 
         <!-- Botones de Acción -->
         <div class="flex gap-4 pt-4">
@@ -170,4 +186,52 @@
     @apply text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100;
   }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const buttonsContainer = document.getElementById('shape-buttons-container');
+        
+        // 1. Ocultar los labels generados por Django para los checkboxes
+        const djangoLabels = buttonsContainer.querySelectorAll('ul li label');
+        djangoLabels.forEach(label => {
+            // Esto oculta la estructura de lista generada por CheckboxSelectMultiple
+            label.parentNode.parentNode.style.display = 'contents';
+        });
+
+        // 2. Agregar el listener a los botones personalizados
+        const shapeButtons = buttonsContainer.querySelectorAll('.shape-button');
+
+        shapeButtons.forEach(button => {
+            const checkbox = button.querySelector('input[type="checkbox"]');
+            
+            // Si el checkbox ya está seleccionado (en edición), el color inicial ya es verde (ver HTML)
+            
+            button.addEventListener('click', function(e) {
+                e.preventDefault(); // Evita que el evento click de la etiqueta haga doble toggle
+
+                // Toggle el estado del checkbox real
+                checkbox.checked = !checkbox.checked;
+
+                // Aplicar la lógica de color basada en el estado del checkbox
+                if (checkbox.checked) {
+                    // Seleccionado -> Verde
+                    button.classList.remove('bg-blue-500');
+                    button.classList.add('bg-green-500');
+                } else {
+                    // Deseleccionado -> Azul
+                    button.classList.remove('bg-green-500');
+                    button.classList.add('bg-blue-500');
+                }
+                
+                // Disparar un evento change en el checkbox para que el framework detecte el cambio
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            
+            // Asegura que el estado inicial del checkbox se refleje en la UI (en caso de edición)
+            if (checkbox.checked) {
+                button.classList.remove('bg-blue-500');
+                button.classList.add('bg-green-500');
+            }
+        });
+    });
+</script>
 {% endblock %}

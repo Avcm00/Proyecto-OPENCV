@@ -19,6 +19,8 @@ from django.contrib import admin
 from django.urls import path, include
 from apps.auth_app.adapters.web import urls 
 from apps.auth_app.adapters.web.views import home
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,4 +29,7 @@ urlpatterns = [
     path('auth/', include('apps.auth_app.adapters.web.urls')),
     path('recomendations/', include('apps.recomendations.adapters.web.urls')),
     path('reports/', include('apps.reports.adapters.web.urls')),
+    path('feedback/', include('apps.feedback.adapters.web.urls'))
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

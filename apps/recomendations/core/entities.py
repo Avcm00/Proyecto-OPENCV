@@ -64,6 +64,7 @@ class HaircutStyle:
     tags: List[str] = field(default_factory=list)
 
 
+
 @dataclass
 class BeardStyle:
     """Estilo de barba"""
@@ -73,9 +74,11 @@ class BeardStyle:
     image_url: str = ""
     suitable_for_shapes: List[FaceShape] = field(default_factory=list)
     benefits: List[str] = field(default_factory=list)
-    maintenance_level: MaintenanceLevel = MaintenanceLevel.MEDIO
+    # ❌ REMOVER ESTA LÍNEA (ya no existe en el modelo):
+    # maintenance_level: MaintenanceLevel = MaintenanceLevel.MEDIO
     popularity_score: float = 0.0
     tags: List[str] = field(default_factory=list)
+
 
 
 @dataclass

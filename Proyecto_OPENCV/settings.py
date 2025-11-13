@@ -57,6 +57,9 @@ LOCAL_APPS = [
     'apps.facial_analysis', 
     'apps.recomendations',
     'apps.reports',
+    'apps.feedback',
+    
+    
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -106,7 +109,22 @@ LOGOUT_REDIRECT_URL = '/auth/login/'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 #base de datos local con postgresql
+
+#base de datos remota en AWS RDS PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mibasedev',
+        'USER': 'admin_opencv',
+        'PASSWORD': 'gyNiDgFe9v88A48',
+        'HOST': 'mibasedev.cr4g8qw8cgqc.us-east-2.rds.amazonaws.com',
+        'PORT': '5432',
+    }
+}
+
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -118,21 +136,19 @@ DATABASES = {
     }
 }
 
-#base de datos remota en AWS RDS PostgreSQL
-'''
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mi-base-dev',
-        'USER': 'admin_opencv',
+        'NAME': 'database-1',
+        'USER': 'posgres',
         'PASSWORD': 'gyNiDgFe9v88A48',
-        'HOST': 'mi-base-dev.cr4g8qw8cgqc.us-east-2.rds.amazonaws.com',
+        'HOST': 'database-1.cr4g8qw8cgqc.us-east-2.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
-'''
-'''
+
+
 DATABASES = { 
      'default': {
          'ENGINE': 'django.db.backends.sqlite3',
@@ -177,12 +193,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC = os.path.join(BASE_DIR, 'static')
+BASE_DIR = Path(__file__).resolve().parent.parent 
+# Nota: Si settings.py está en PROYECTO OPENCV/PROYECTO OPENCV/, 
+# necesitarías .parent.parent para llegar a la raíz. Asumo que ya está bien.
+
+
+# 1. Configuración de STATIC FILES
 STATIC_URL = '/static/'
 
+# AÑADE: La ruta a tu carpeta 'static' en la raíz del proyecto.
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    os.path.join(BASE_DIR, 'static'), 
 ]
+
+# 2. Configuración de MEDIA FILES (Para manejar la subida por ImageField)
+# Asumiendo que usas ImageField en los modelos y quieres subir nuevos archivos a esa misma carpeta 'static'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
