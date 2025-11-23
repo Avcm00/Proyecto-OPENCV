@@ -48,7 +48,8 @@ class RegisterForm(UserCreationForm):
         user.set_password(self.cleaned_data['password1'])
         if commit:
             user.save()
-            ProfileModel.objects.create(user=user)
+            # ❌ ELIMINAR ESTA LÍNEA PARA EVITAR EL ERROR
+            # ProfileModel.objects.create(user=user)
         return user
 
 
